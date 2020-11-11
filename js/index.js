@@ -1,15 +1,22 @@
 const vh = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0)
 
-$(document).ready(() => {
-    $(window).scroll(() => {
-        if ($(this).scrollTop() > (vh * 0.9)) {
-            $('nav').removeClass('navbar-dark')
-            $('nav').addClass('navbar-light')
-        } else {
-            $('nav').removeClass('navbar-light')
-            $('nav').addClass('navbar-dark')
-        }
+function dynamicNavbar() {
+    console.log($(this).scrollTop() > (vh * 0.95))
+    if ($(this).scrollTop() > (vh * 0.95)) {
+        $('nav').removeClass('navbar-dark')
+        $('nav').addClass('navbar-light')
+        $('nav').addClass('scrolled')
+    } else {
+        $('nav').removeClass('navbar-light')
+        $('nav').removeClass('scrolled')
+        $('nav').addClass('navbar-dark')
+    }
+}
 
-        $('nav').toggleClass('scrolled', $(this).scrollTop() > vh * 0.9)
+$(document).ready(() => {
+    dynamicNavbar()
+
+    $(window).scroll(() => {
+        dynamicNavbar()
     })
 })

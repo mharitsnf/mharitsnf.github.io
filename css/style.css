@@ -34,6 +34,7 @@ body {
 }
 
 #about-us h1 {
+    font-weight: bold;
     margin-left: 4rem;
     margin-right: 4rem;
 }
@@ -62,7 +63,7 @@ body {
 .img-card {
     position: relative;
     width: 100%;
-    height: auto;
+    min-height: 28rem;
     object-fit: cover;
     margin-top: 2rem;
     margin-bottom: 2rem;
@@ -73,14 +74,15 @@ body {
 
 .img-card:hover {
     transform: scale(1.05);
+    filter: brightness(100%);
     /* (150% zoom - Note: if the zoom is too large, it will go outside of the viewport) */
 }
 
 .img-card-overlay {
     position: absolute;
-    z-index: 2;
     bottom: 10%;
-    width: 80%;
+    width: auto;
+    padding-left: 1rem;
 }
 
 header {
@@ -138,6 +140,14 @@ h5 {
 
 footer {
     background-color: #f1e9e3;
+}
+
+[data-text] {
+    color: orange;
+}
+
+[data-text]::after {
+    content: attr(data-text);
 }
 
 @media (pointer: coarse) and (hover: none) {

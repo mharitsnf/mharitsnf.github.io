@@ -4,8 +4,8 @@
 }
 
 .home-card-small {
-    padding-top: 5;
-    padding-bottom: 5;
+    padding-top: 5vh;
+    padding-bottom: 5vh;
 }
 
 .home-card-medium {
@@ -13,8 +13,12 @@
     padding-bottom: 10vh;
 }
 
-body {
+.color1 {
     background-color: #fbf7f7;
+}
+
+.color2 {
+    background-color: #f1e9e3;
 }
 
 .nav-bg {
@@ -30,7 +34,6 @@ body {
     margin-left: 0;
     margin-right: 0;
     width: 100%;
-    background-color: #f1e9e3;
 }
 
 #about-us h1 {

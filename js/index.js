@@ -1,7 +1,6 @@
 const vh = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0)
 
 function dynamicNavbar() {
-    console.log($(this).scrollTop() > (vh * 0.95))
     if ($(this).scrollTop() > (vh * 0.95)) {
         $('nav').removeClass('navbar-dark')
         $('nav').addClass('navbar-light')

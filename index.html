@@ -24,14 +24,24 @@
 
             <div class="collapse navbar-collapse my-2 my-lg-0" id="navbarSupportedContent">
                 <ul class="navbar-nav">
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Penginapan</a>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                          Akomodasi
+                        </a>
+                        <div class="dropdown-menu transparent" aria-labelledby="navbarDropdown">
+                            <a class="dropdown-item" href="rooms.html">Kamar</a>
+                            <a class="dropdown-item" href="#">Cabin</a>
+                            <a class="dropdown-item" href="#">Cottage dan Villa</a>
+                        </div>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="#">Aktivitas</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="#">Kuliner</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Gallery</a>
                     </li>
                 </ul>
             </div>
@@ -96,13 +106,15 @@
 
     <div class="row color2" style="max-width: 100vw; margin-left: 0; margin-right: 0;">
         <div class="col-lg-4">
-            <div class="container text-center p-5">
+            <div class="container p-5 h-100 d-flex flex-column align-items-center justify-content-center">
                 <h2>Tentang Camp Hulu Cai</h2>
                 <p>Deskripsi: lorem ipsum dolor sit amet lorem ipsum dolor sit amet lorem ipsum dolor sit amet lorem ipsum dolor sit amet lorem ipsum dolor sit amet lorem ipsum dolor sit amet lorem ipsum dolor sit amet</p>
+                <hr>
+                <button class="btn btn-info" style="box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);">Cek Ketersediaan</button>
             </div>
 
         </div>
-        <div class="col-lg-8 px-0">
+        <div class="col-lg-8 p-0">
             <div id="carousel-home" class="carousel slide" data-ride="carousel">
                 <ol class="carousel-indicators">
                     <li data-target="#carousel-home" data-slide-to="0" class="active"></li>
@@ -134,7 +146,13 @@
         </div>
     </div>
 
-    <div class="container my-5">
+    <div class="container my-4" style="position: relative; height: 10vh;">
+        <div class="d-flex flex-column justify-content-center" style="height: inherit;">
+            <h1 class="text-center text-bold">Fasilitas</h1>
+        </div>
+    </div>
+
+    <div class="container mb-5">
         <div class="row">
             <div class="col-lg-4">
                 <div class="container">

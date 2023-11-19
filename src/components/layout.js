@@ -1,13 +1,13 @@
 import * as React from 'react'
 import { Link, useStaticQuery, graphql } from 'gatsby'
-import {
-  container,
-  heading,
-  navLinks,
-  navLinkItem,
-  navLinkText,
-  siteTitle
-} from './layout.module.css'
+
+
+const NavLink = ({ target, children }) => {
+  return (
+    <Link className='font-bold' to={target}>{children}</Link>
+  )
+}
+
 
 const Layout = ({ pageTitle, children }) => {
   const data = useStaticQuery(graphql`
@@ -21,29 +21,19 @@ const Layout = ({ pageTitle, children }) => {
   `)
 
   return (
-    <div className={container}>
-      <header className={siteTitle}>{data.site.siteMetadata.title}</header>
-      <nav>
-        <ul className={navLinks}>
-          <li className={navLinkItem}>
-            <Link to="/" className={navLinkText}>
-              Home
-            </Link>
-          </li>
-          <li className={navLinkItem}>
-            <Link to="/about" className={navLinkText}>
-              About
-            </Link>
-          </li>
-          <li className={navLinkItem}>
-            <Link to="/blog" className={navLinkText}>
-              Blog
-            </Link>
-          </li>
-        </ul>
-      </nav>
+    <div className='container mx-auto py-16 px-12 lg:px-52'>
+      
+      <header className='pb-12 pt-12 lg:pt-32'>
+        <h1 className='text-5xl lg:text-6xl pb-8 font-bold'>{data.site.siteMetadata.title}</h1>
+        <nav className='flex gap-6 pt-8'>
+          <NavLink target="/">Home</NavLink>
+          <NavLink target="/about">About</NavLink>
+          <NavLink target="/blog">Blog</NavLink>
+        </nav>
+      </header>
+
       <main>
-        <h1 className={heading}>{pageTitle}</h1>
+        {pageTitle ? <h1>{pageTitle}</h1> : null}
         {children}
       </main>
     </div>

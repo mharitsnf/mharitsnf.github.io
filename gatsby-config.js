@@ -3,8 +3,8 @@
  */
 module.exports = {
   siteMetadata: {
-    title: `Portfolio`,
-    description: `Harits' Portfolio`,
+    title: `Harits Nur Fauzan`,
+    description: `Portfolio`,
     twitterUsername: `@mharitsnf`,
     image: `/gatsby-icon.png`,
     siteUrl: `https://www.yourdomain.tld`,
@@ -21,5 +21,19 @@ module.exports = {
     },
     "gatsby-plugin-mdx",
     "gatsby-transformer-sharp",
+    "gatsby-plugin-postcss",
+    {
+      resolve: `gatsby-omni-font-loader`,
+      options: {
+        enableListener: true,
+        preconnect: [`https://fonts.googleapis.com`, `https://fonts.gstatic.com`],
+        web: [
+          {
+            name: `Plus Jakarta Sans`,
+            file: `https://fonts.googleapis.com/css?family=Plus Jakarta Sans`,
+          },
+        ],
+      },
+    },
   ],
 }

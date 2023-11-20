@@ -1,22 +1,45 @@
 // Step 1: Import React
 import * as React from 'react'
 import Layout from '../components/layout'
-import { ProjectSection, DividerLg, DividerMd } from '../components/content'
+import { Pg, ProjectSection, DividerLg, DividerMd } from '../components/content'
 import Seo from '../components/seo'
+import { useStaticQuery, graphql } from 'gatsby'
 
 const IndexPage = () => {
+  const godotData = useStaticQuery(graphql`
+    query {
+      allMdx(
+        sort: {frontmatter: {date: DESC}}
+        filter: {internal: {contentFilePath: {regex: "/project/godot/"}}}
+      ) {
+        nodes {
+          frontmatter {
+            date(formatString: "DD MMMM YYYY")
+            title
+            slug
+            thumbnail_image {
+              childImageSharp {
+                gatsbyImageData
+              }
+            }
+            thumbnail_image_alt
+          }
+          id
+        }
+      }
+    }
+  `)
+
   return (
     <Layout>
-      
-      <p>I'm a software engineer passionate in game and 3D application development, graphics programming, and interaction design. Currently based in Stockholm, Sweden.</p>
+
+      <Pg>I'm a software engineer passionate in game and 3D application development, graphics programming, and interaction design. Currently based in Stockholm, Sweden.</Pg>
       <DividerMd />
-      <p>Contact me at <span className='font-bold'>mharitsnf@gmail.com</span></p>
+      <Pg>Contact me at <span className='font-bold'>mharitsnf@gmail.com</span></Pg>
 
       <DividerLg />
 
-      <ProjectSection sectionTitle={"Unity Projects"} />
-      <DividerMd />
-      <ProjectSection sectionTitle={"Godot Projects"} />
+      <ProjectSection sectionTitle={"Godot Projects"} data={godotData} />
 
     </Layout>
   )

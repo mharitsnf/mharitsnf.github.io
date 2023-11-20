@@ -6,15 +6,20 @@ import { GatsbyImage, getImage } from 'gatsby-plugin-image'
 // TEXTS ==============================
 export const PageTitle = ({ children }) => {
   return (
-    <h1 className='font-bold text-4xl lg:text-6xl'>{children}</h1>
+    <h1 className='font-bold text-3xl lg:text-5xl'>{children}</h1>
   )
 }
 
 
 const ProjectSectionTitle = ({ children }) => {
   return (
-    <h2 className='font-bold text-xl lg:text-2xl text-white/50'>{children}</h2>
+    <h2 className='font-bold text-lg lg:text-xl opacity-50'>{children}</h2>
   )
+}
+
+
+export const Pg = ({ children, className }) => {
+  return <p className={`lg:text-lg ${className}`}>{children}</p>
 }
 
 
@@ -34,8 +39,18 @@ export const BlogCard = ({ node }) => {
   const image = getImage(node.frontmatter.hero_image)
 
   return (
-    <Link className='flex flex-col lg:flex-row rounded-lg bg-slate-800 mb-8' to={`/blog/${node.frontmatter.slug}`}>
-      
+    <Link className='
+      flex 
+      flex-col lg:flex-row 
+      rounded-lg 
+      bg-slate-800 
+      mb-8
+      transition duration-500
+      shadow-lg 
+      shadow-slate-900 hover:shadow-slate-600' 
+      to={`/blog/${node.frontmatter.slug}`}
+    >
+
       <GatsbyImage
         className='w-auto lg:w-[10vw] lg:h-auto rounded-t-lg lg:rounded-tr-none lg:rounded-l-lg'
         image={image}
@@ -52,32 +67,62 @@ export const BlogCard = ({ node }) => {
 }
 
 
-const ProjectCard = () => {
-  return (
-    <div className='w-auto h-[30vh] bg-slate-600 rounded-lg'>
+const ProjectCard = ({ node }) => {
+  const image = getImage(node.frontmatter.thumbnail_image)
 
-    </div>
+  return (
+    <Link className='
+      group relative
+      transition duration-200
+      shadow-xl
+      shadow-slate-900 hover:shadow-slate-800 
+      w-auto h-[30vh] 
+      rounded-lg' 
+      to={`/project/${node.frontmatter.slug}`}
+    >
+      
+      <GatsbyImage
+        className='w-auto h-full rounded-lg'
+        image={image}
+        alt={node.frontmatter.thumbnail_image_alt}
+      />
+      
+      <div className='
+        group-hover:transition duration-200
+        w-full h-full  
+        absolute bottom-0 left-0 rounded-lg 
+        bg-black/30 
+        opacity-0 group-hover:opacity-100 
+        flex flex-col justify-end 
+        pb-8'
+      >
+        <p className='text-center'>{node.frontmatter.title}</p>
+      </div>
+
+    </Link>
   )
 }
 
 // SECTIONS ==============================
-export const ProjectSection = ({ sectionTitle }) => {
+export const ProjectSection = ({ sectionTitle, data }) => {
   return (
     <section>
       <DividerLg />
-      
+
       <ProjectSectionTitle>{sectionTitle}</ProjectSectionTitle>
-      
+
       <DividerMd />
-      
+
       <div className='grid grid-cols-1 lg:grid-cols-3 gap-8'>
-        <ProjectCard></ProjectCard>
-        <ProjectCard></ProjectCard>
-        <ProjectCard></ProjectCard>
-        <ProjectCard></ProjectCard>
-        <ProjectCard></ProjectCard>
+        {
+          data.allMdx.nodes.map(node => {
+            return (
+              <ProjectCard key={node.id} node={node}></ProjectCard>
+            )
+          })
+        }
       </div>
-    
+
     </section>
   )
 }

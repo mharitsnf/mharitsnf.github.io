@@ -36,7 +36,7 @@ const HeaderBlog = ({ data }) => {
 
       <BackLink>
         <span className='text-xs lg:text-lg'>←</span>
-        <p className='text-xs lg:text-lg'>Back to blog list</p>
+        <p className='text-xs lg:text-lg'>Back</p>
       </BackLink>
 
       <DividerLg />
@@ -69,7 +69,7 @@ const Headers = ({ mode, extData }) => {
     case 'NORMAL':
       return <HeaderNormal data={defaultData} />
 
-    case 'BLOG':
+    case 'CONTENT':
       return <HeaderBlog data={extData} />
 
     default:

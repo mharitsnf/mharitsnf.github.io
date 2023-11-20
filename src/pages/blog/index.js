@@ -1,19 +1,19 @@
 import * as React from 'react'
 import { graphql } from 'gatsby'
-import Layout from '../../components/layout'
+import PageContainer from '../../components/layout'
 import Seo from '../../components/seo'
 import { BlogCard } from '../../components/content'
 
 
-const BlogPage = ({ data }) => {
+const BlogPage = ({ location, data }) => {
   return (
-    <Layout>
+    <PageContainer>
       {
         data.allMdx.nodes.map((node) => (
           <BlogCard node={node} key={node.id} />
         ))
       }
-    </Layout>
+    </PageContainer>
   )
 }
 

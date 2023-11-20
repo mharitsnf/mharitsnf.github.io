@@ -21,8 +21,8 @@ const HeaderNormal = ({ data }) => {
       <DividerLg />
 
       <nav className='flex gap-[4vw]'>
-        <NavLink target="/">Home</NavLink>
-        <NavLink target="/blog">Blog</NavLink>
+        <NavLink target="/">Projects</NavLink>
+        <NavLink isActive={true} target="/blog">Blog</NavLink>
       </nav>
 
       <DividerLg />

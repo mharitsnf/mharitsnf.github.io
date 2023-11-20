@@ -2,7 +2,7 @@ import * as React from 'react'
 import Headers from './headers'
 
 
-const Layout = ({ pageTitle, mode, children, extData }) => {
+const PageContainer = ({ pageTitle, mode, children, extData }) => {
   return (
     <div className='container mx-auto py-16 px-20 lg:px-52'>
 
@@ -16,4 +16,4 @@ const Layout = ({ pageTitle, mode, children, extData }) => {
   )
 }
 
-export default Layout
+export default PageContainer

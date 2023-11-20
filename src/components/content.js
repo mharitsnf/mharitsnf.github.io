@@ -11,9 +11,9 @@ export const PageTitle = ({ children }) => {
 }
 
 
-const ProjectSectionTitle = ({ children }) => {
+export const Subtitle = ({ children, className }) => {
   return (
-    <h2 className='font-bold text-lg lg:text-xl opacity-50'>{children}</h2>
+    <h2 className={`font-bold text-lg lg:text-xl opacity-50 ${className}`}>{children}</h2>
   )
 }
 
@@ -46,7 +46,7 @@ export const BlogCard = ({ node }) => {
       bg-slate-800 
       mb-8
       transition duration-500
-      shadow-lg 
+      shadow-md hover:shadow-lg 
       shadow-slate-900 hover:shadow-slate-600' 
       to={`/blog/${node.frontmatter.slug}`}
     >
@@ -73,7 +73,7 @@ const ProjectCard = ({ node }) => {
   return (
     <Link className='
       group relative
-      transition duration-200
+      transition duration-500
       shadow-xl
       shadow-slate-900 hover:shadow-slate-800 
       w-auto h-[30vh] 
@@ -88,10 +88,10 @@ const ProjectCard = ({ node }) => {
       />
       
       <div className='
-        group-hover:transition duration-200
+        group-hover:transition duration-500
         w-full h-full  
         absolute bottom-0 left-0 rounded-lg 
-        bg-black/30 
+        bg-black/50 
         opacity-0 group-hover:opacity-100 
         flex flex-col justify-end 
         pb-8'
@@ -109,7 +109,7 @@ export const ProjectSection = ({ sectionTitle, data }) => {
     <section>
       <DividerLg />
 
-      <ProjectSectionTitle>{sectionTitle}</ProjectSectionTitle>
+      <Subtitle>{sectionTitle}</Subtitle>
 
       <DividerMd />
 

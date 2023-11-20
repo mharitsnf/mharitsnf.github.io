@@ -1,35 +1,40 @@
 import * as React from 'react'
-import { Link, graphql } from 'gatsby'
+import { graphql } from 'gatsby'
 import Layout from '../../components/layout'
 import Seo from '../../components/seo'
+import { BlogCard } from '../../components/content'
+
 
 const BlogPage = ({ data }) => {
   return (
-    <Layout pageTitle="My Blog Posts">
+    <Layout>
       {
         data.allMdx.nodes.map((node) => (
-          <article key={node.id}>
-            <h2>
-              <Link to={`/blog/${node.frontmatter.slug}`}>
-                {node.frontmatter.title}
-              </Link>
-            </h2>
-            <p>Posted: {node.frontmatter.date}</p>
-          </article>
+          <BlogCard node={node} key={node.id} />
         ))
       }
     </Layout>
   )
 }
 
+
 export const query = graphql`
   query {
-    allMdx(sort: {frontmatter: {date: DESC}}) {
+    allMdx(
+      sort: {frontmatter: {date: DESC}}
+      filter: {internal: {contentFilePath: {regex: "/blog/"}}}
+    ) {
       nodes {
         frontmatter {
           date(formatString: "DD MMMM YYYY")
           title
           slug
+          hero_image_alt
+          hero_image {
+            childImageSharp {
+              gatsbyImageData
+            }
+          }
         }
         id
       }

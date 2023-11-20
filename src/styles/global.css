@@ -1,12 +1,13 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+* {
+    color: white;
+    font-family: 'Plus Jakarta Sans';
+}
 
 html {
     background-color: #0C0D22;
 }
 
-* {
-    color: white;
-    font-family: 'Plus Jakarta Sans';
-}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+

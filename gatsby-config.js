@@ -4,10 +4,11 @@
 module.exports = {
   siteMetadata: {
     title: `Harits Nur Fauzan`,
-    description: `Portfolio`,
+    description: `Portfolio of Harits Nur Fauzan.`,
     twitterUsername: `@mharitsnf`,
-    image: `/gatsby-icon.png`,
-    siteUrl: `https://www.yourdomain.tld`,
+    image: `/icon.webp`,
+    siteUrl: `https://mharitsnf.github.io`,
+    favicon: `/favicon.ico`,
   },
   plugins: [
     "gatsby-plugin-image",

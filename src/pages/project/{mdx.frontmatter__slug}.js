@@ -6,19 +6,9 @@ import Seo from '../../components/seo'
 
 
 const ProjectPost = ({ data, children }) => {
-  // const image = getImage(data.mdx.frontmatter.hero_image)
 
   return (
     <PageContainer mode="CONTENT" extData={data}>
-
-      {/* Hero img */}
-      {/* <GatsbyImage
-        className='rounded-lg'
-        image={image}
-        alt={data.mdx.frontmatter.hero_image_alt}
-      /> */}
-
-      {/* <DividerLg /> */}
 
       <MDXLayout>
         {children}

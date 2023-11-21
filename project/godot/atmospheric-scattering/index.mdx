@@ -19,13 +19,23 @@ thumbnail_image_alt: "Godot Atmospheric Scattering"
 
 ---
 
-## Overview
+## Description
 This is an implementation of the atmospheric scattering simulation in Godot Engine 4.
 This simulates the Rayleigh and Mie scattering phenomena that happens on the Earth's atmosphere, the phenomena that
 creates the colorful blue-red sky as we know.
 
 This project implements an accelerated version of the simulation by utilizing an optical depth texture;
 allowing the simulation to do a texture lookup for finding the optical depth value instead of calculating it manually for each frame.
+
+---
+
+import cover from "./thumbnail-atmospheric.png"
+
+<FlexMedia>
+    <Img src={cover} alt="Result" />
+</FlexMedia>
+
+---
 
 The optical depth texture contains a sample point at a specific altitude above the planet in the *x*-dimension, while in the *y*-dimension
 represents a vertical angle, with 0.0 being straight up and 1.0 being straight down.

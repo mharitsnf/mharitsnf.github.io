@@ -5,7 +5,7 @@ import Seo from '../../components/seo'
 import { BlogCard, Subtitle, Pg } from '../../components/content'
 
 
-const BlogPage = ({ location, data }) => {
+const BlogPage = ({ data }) => {
   return (
     <PageContainer>
       <Subtitle>Blogs</Subtitle>

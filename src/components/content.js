@@ -40,7 +40,7 @@ export const DividerMd = () => {
 
 // CARDS ==============================
 export const BlogCard = ({ node }) => {
-  const image = getImage(node.frontmatter.hero_image)
+  const image = getImage(node.frontmatter.thumbnail_image)
 
   return (
     <Link className='
@@ -55,11 +55,13 @@ export const BlogCard = ({ node }) => {
       to={`/blog/${node.frontmatter.slug}`}
     >
 
-      <GatsbyImage
-        className='w-auto lg:w-[10vw] lg:h-auto rounded-t-lg lg:rounded-tr-none lg:rounded-l-lg'
-        image={image}
-        alt={node.frontmatter.hero_image_alt}
-      />
+      {
+        image ? <GatsbyImage
+          className='w-auto lg:w-[10vw] lg:h-auto rounded-t-lg lg:rounded-tr-none lg:rounded-l-lg'
+          image={image}
+          alt={node.frontmatter.thumbnail_image_alt}
+        /> : null
+      }
 
       <div className='py-8 px-6 flex gap-4 flex-col justify-center'>
         <h2 className='font-bold text-md'>{node.frontmatter.title}</h2>
@@ -95,10 +97,9 @@ const ProjectCard = ({ node }) => {
         absolute bottom-0 left-0 rounded-lg 
         bg-black/50 
         opacity-0 group-hover:opacity-100 
-        flex flex-col justify-end 
-        pb-8'
+        flex flex-col justify-end'
       >
-        <p className='text-center'>{node.frontmatter.title}</p>
+        <p className='text-center px-6 pb-6'>{node.frontmatter.title}</p>
       </div>
 
     </Link>
@@ -111,7 +112,7 @@ export const ProjectSection = ({ sectionTitle, data }) => {
     <section>
       <Subtitle>{sectionTitle}</Subtitle>
 
-      <div className='grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-8'>
+      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8'>
         {
           data.nodes.map(node => {
             return (

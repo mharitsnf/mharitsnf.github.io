@@ -2,15 +2,21 @@
 title: "Master's Thesis x Ubisoft Stockholm"
 date: "2021-07-25"
 slug: "master-thesis"
-thumbnail_image: "./img.jpg"
+thumbnail_image: "./thesis-env.webp"
 thumbnail_image_alt: "Thesis Logo"
+---
+
+import cover from "./thesis-env.webp"
+
+<FlexMedia>
+    <Img src={cover} alt="Cover" />
+</FlexMedia>
+
 ---
 
 ## Project links
 <Flex>
-    <NavLinkOut target="https://arsith.itch.io/atmospheric-scattering-godot" >Play The Demo</NavLinkOut>
-    <NavLinkOut target="https://developer.nvidia.com/gpugems/gpugems2/part-ii-shading-lighting-and-shadows/chapter-16-accurate-atmospheric-scattering?source=post_page-----1dca2d84452c--------------------------------" >Reference Article</NavLinkOut>
-    <NavLinkOut target="https://medium.com/@mharitsnf/generating-texture-for-accelerating-atmospheric-scattering-in-godot-engine-4-1dca2d84452c" >Development blog</NavLinkOut>
+    <NavLinkOut target="https://github.com/mharitsnf/Thesis-Project" >Github</NavLinkOut>
 </Flex>
 
 ---
@@ -28,10 +34,26 @@ While it is clear how players or other entities interact with the game mechanics
 
 ---
 
+import gameplay from "./thesis-gameplay.mp4"
+
+<video className="rounded-lg" muted autoPlay>
+    <source src={gameplay} type="video/mp4" />
+</video>
+
+---
+
 ## Method
 To answer the research question, we developed a small open-world game that is able to collect the players' interaction data. The game was developed in Unity 3D over the span of one month. We collected 23 participants where they had to play the game first, and then interviewed afterwards.
 
 We analyzed the players' interview records using thematic analysis. The result from the thematic analysis is then complimented with the visualization of the interaction data. Through this approach, we managed to collect the players' reasoning on why they take or abandon certain paths through the thematic analysis, while the visualization of the interaction data managed to display how the players actually use the environment. 
+
+---
+
+import viz from "./thesis-viz.mp4"
+
+<video className="rounded-lg" muted autoPlay>
+    <source src={viz} type="video/mp4" />
+</video>
 
 ---
 

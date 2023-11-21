@@ -6,7 +6,10 @@ export const NavLink = ({ target, isActive, children }) => {
   return (
     <Link className={`
       font-bold lg:text-lg
-    `} 
+      bg-gradient-to-r from-harits-blue-2 to-harits-blue-3 
+      rounded-full
+      px-8 py-3
+    `}
       to={target}
     >
       {children}
@@ -20,6 +23,15 @@ export const BackLink = ({ children }) => {
   )
 }
 
+
 export const NavLinkOut = ({ target, children }) => {
-  return <a className='text-sm underline' href={target} target="_blank" rel="noopener noreferrer">{children}</a>
+  return (
+    <a className='
+        text-sm md:text-md lg:text-lg
+        underline underline-offset-2'
+      href={target} target="_blank" rel="noopener noreferrer"
+    >
+      <p>{children} ⭷</p>
+    </a>
+  )
 }

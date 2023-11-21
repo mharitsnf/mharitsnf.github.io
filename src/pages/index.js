@@ -40,7 +40,7 @@ const IndexPage = ({ location }) => {
       <DividerMd />
       <ul className='flex flex-col lg:flex-row gap-2 lg:gap-6'>
         <li><NavLinkOut target='https://www.linkedin.com/in/mharitsnf/'>Linkedin</NavLinkOut></li>
-        <li><NavLinkOut target='mailto:mharitsnf@gmail.com'>Email (mharitsnf@gmail.com)</NavLinkOut></li>
+        <li><NavLinkOut target='mailto:mharitsnf@gmail.com'>Email</NavLinkOut></li>
         <li><NavLinkOut target='https://medium.com/@mharitsnf'>Medium</NavLinkOut></li>
         <li><NavLinkOut target='https://github.com/mharitsnf/'>Github</NavLinkOut></li>
         <li><NavLinkOut target='https://arsith.itch.io/'>Itch.io</NavLinkOut></li>

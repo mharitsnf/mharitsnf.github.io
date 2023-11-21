@@ -2,12 +2,14 @@ import * as React from 'react'
 import { graphql } from 'gatsby'
 import PageContainer from '../../components/layout'
 import Seo from '../../components/seo'
-import { BlogCard } from '../../components/content'
+import { BlogCard, Subtitle, DividerLg } from '../../components/content'
 
 
 const BlogPage = ({ location, data }) => {
   return (
     <PageContainer>
+      <Subtitle>Blogs</Subtitle>
+      <DividerLg />
       {
         data.allMdx.nodes.map((node) => (
           <BlogCard node={node} key={node.id} />

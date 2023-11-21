@@ -43,11 +43,11 @@ export const BlogCard = ({ node }) => {
       flex 
       flex-col lg:flex-row 
       rounded-lg 
-      bg-slate-800 
+      bg-gradient-to-r from-harits-blue-2 to-harits-blue-3 
       mb-8
       transition duration-500
       shadow-md hover:shadow-lg 
-      shadow-slate-900 hover:shadow-slate-600' 
+      shadow-slate-900 hover:shadow-harits-blue-2 ' 
       to={`/blog/${node.frontmatter.slug}`}
     >
 
@@ -74,8 +74,6 @@ const ProjectCard = ({ node }) => {
     <Link className='
       group relative
       transition duration-500
-      shadow-xl
-      shadow-slate-900 hover:shadow-slate-800 
       w-auto h-[30vh] 
       rounded-lg' 
       to={`/project/${node.frontmatter.slug}`}

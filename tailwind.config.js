@@ -7,7 +7,9 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        "harits-blue-1": "#0C0D22"
+        "harits-blue-1": "#0C0D22",
+        "harits-blue-2": "#19376D",
+        "harits-blue-3": "#576CBC",
       },
     },
   },

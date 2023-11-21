@@ -1,5 +1,6 @@
 import * as React from 'react'
 import Headers from './headers'
+import { DividerLg, Pg } from './content'
 
 
 const PageContainer = ({ pageTitle, mode, children, extData }) => {
@@ -12,6 +13,12 @@ const PageContainer = ({ pageTitle, mode, children, extData }) => {
         {pageTitle ? <h1>{pageTitle}</h1> : null}
         {children}
       </main>
+
+      <DividerLg />
+
+      <Pg className="opacity-30">Harits Nur Fauzan</Pg>
+
+      <DividerLg />
     </div>
   )
 }

@@ -13,26 +13,30 @@ export const PageTitle = ({ children }) => {
 
 export const Subtitle = ({ children, className }) => {
   return (
-    <h2 className={`font-bold text-lg lg:text-xl opacity-50 ${className}`}>{children}</h2>
+    <h2 className={`font-bold text-lg lg:text-xl pb-[3vh] lg:pb-[3vh] ${className}`}>{children}</h2>
   )
 }
 
 
 export const Pg = ({ children, className }) => {
-  return <p className={`lg:text-lg ${className}`}>{children}</p>
+  return <p className={`lg:text-lg pb-[2vh] lg:pb-[1.5vh] ${className}`}>{children}</p>
+}
+
+
+export const Li = ({ children, className }) => {
+  return <li className={`lg:text-lg pb-[2vh] lg:pb-[1.5vh] ${className}`}>{children}</li>
 }
 
 
 // DIVIDERS ==============================
 export const DividerLg = () => {
-  return <div className='py-[2vh] lg:py-[4vh]'></div>
+  return <div className='py-[6vh] lg:py-[8vh]'></div>
 }
 
 
 export const DividerMd = () => {
-  return <div className='py-[1vh] lg:py-[2vh]'></div>
+  return <div className='py-[3vh] lg:py-[4vh]'></div>
 }
-
 
 // CARDS ==============================
 export const BlogCard = ({ node }) => {
@@ -74,7 +78,7 @@ const ProjectCard = ({ node }) => {
     <Link className='
       group relative
       transition duration-500
-      w-auto h-[30vh] 
+      w-auto h-[30vh] lg:h-[25vh] 
       rounded-lg' 
       to={`/project/${node.frontmatter.slug}`}
     >
@@ -105,15 +109,11 @@ const ProjectCard = ({ node }) => {
 export const ProjectSection = ({ sectionTitle, data }) => {
   return (
     <section>
-      <DividerLg />
-
       <Subtitle>{sectionTitle}</Subtitle>
 
-      <DividerMd />
-
-      <div className='grid grid-cols-1 lg:grid-cols-3 gap-8'>
+      <div className='grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-8'>
         {
-          data.allMdx.nodes.map(node => {
+          data.nodes.map(node => {
             return (
               <ProjectCard key={node.id} node={node}></ProjectCard>
             )
@@ -121,6 +121,7 @@ export const ProjectSection = ({ sectionTitle, data }) => {
         }
       </div>
 
+      <DividerMd />
     </section>
   )
 }

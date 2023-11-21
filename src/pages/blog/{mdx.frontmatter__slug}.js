@@ -34,13 +34,6 @@ export const query = graphql`
     mdx(id: {eq: $id}) {
       frontmatter {
         title
-        date(formatString: "MMMM DD, YYYY")
-        hero_image_alt
-        hero_image {
-          childImageSharp {
-            gatsbyImageData
-          }
-        }
       }
     }
   }

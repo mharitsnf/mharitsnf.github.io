@@ -1,26 +1,24 @@
 import * as React from 'react'
 import { graphql } from 'gatsby'
-import { GatsbyImage, getImage } from 'gatsby-plugin-image'
 import PageContainer from '../../components/layout'
 import MDXLayout from '../../components/mdx_components'
 import Seo from '../../components/seo'
-import { DividerLg } from '../../components/content'
 
 
-const BlogPost = ({ data, children }) => {
-  const image = getImage(data.mdx.frontmatter.hero_image)
+const ProjectPost = ({ data, children }) => {
+  // const image = getImage(data.mdx.frontmatter.hero_image)
 
   return (
     <PageContainer mode="CONTENT" extData={data}>
 
       {/* Hero img */}
-      <GatsbyImage
+      {/* <GatsbyImage
         className='rounded-lg'
         image={image}
         alt={data.mdx.frontmatter.hero_image_alt}
-      />
+      /> */}
 
-      <DividerLg />
+      {/* <DividerLg /> */}
 
       <MDXLayout>
         {children}
@@ -35,13 +33,7 @@ export const query = graphql`
     mdx(id: {eq: $id}) {
       frontmatter {
         title
-        date(formatString: "MMMM DD, YYYY")
-        hero_image_alt
-        hero_image {
-          childImageSharp {
-            gatsbyImageData
-          }
-        }
+        date(formatString: "MMMM YYYY")
       }
     }
   }
@@ -49,4 +41,4 @@ export const query = graphql`
 
 export const Head = ({ data }) => <Seo title={data.mdx.frontmatter.title} />
 
-export default BlogPost
+export default ProjectPost

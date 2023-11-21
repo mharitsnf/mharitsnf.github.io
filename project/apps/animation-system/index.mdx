@@ -1,0 +1,38 @@
+---
+title: "Animation System Programming"
+date: "2021-07-25"
+slug: "animation-system-programming"
+thumbnail_image: "./img.jpg"
+thumbnail_image_alt: "Animation System Programming Logo"
+---
+
+## Project links
+<Flex>
+    <NavLinkOut target="https://fuatw.itch.io/billiaquarium" >Play The Game</NavLinkOut>
+    <NavLinkOut target="https://github.com/Thelarion/BilliardGameJam" >Github</NavLinkOut>
+</Flex>
+
+
+---
+
+## Description
+When I was still working on my Master's thesis (March-June 2023), I had a growing interest in learning about animation
+programming for real-time applications such as video games. However, I held back from working on it because I was still
+occupied with my thesis, and I struggled to find a good resource on this topic. That is, until I discovered Gabor Szauer's book,
+"Hands-On C++ Game Animation Programming," which covers almost everything I wanted to learn.
+
+This project is an implementation of the aforementioned book. In this project, I learned about and created an animation
+system from scratch, which includes:
+
+1. Math implementations (vectors, matrices, and quaternions)
+2. Basic renderer using OpenGL (glfw and glad)
+3. Implementing animation clips using curves, frames, and tracks
+4. Mesh skinning
+5. Animation blending and crossfading
+6. Inverse kinematics using Cyclic Coordinate Descent (CCD) and Forward And Backward Reaching Inverse Kinematics (FABRIK)
+7. Dual quaternion for smoother blending
+8. Rendering instanced crowds by sampling animations and poses into textures
+
+The original implementation in the book was developed for Windows, while during the time I read this book,
+I am using a MacOS. As a result, the code is not exactly the same as the one in the book since some modifications
+were required to make the application run in MacOS.

@@ -1,13 +1,15 @@
 import * as React from 'react'
 import { useStaticQuery, graphql } from 'gatsby'
 import { NavLink, BackLink } from '../components/navigations'
-import { DividerLg, PageTitle } from './content'
+import { DividerLg, DividerMd, PageTitle } from './content'
 
 
 const BaseHeader = ({ children }) => {
   return (
-    <header className='py-[4vh]'>
+    <header>
+      <DividerLg />
       {children}
+      <DividerLg />
     </header>
   )
 }
@@ -18,14 +20,16 @@ const HeaderNormal = ({ data }) => {
     <BaseHeader>
       <PageTitle>{data.site.siteMetadata.title}</PageTitle>
       
-      <DividerLg />
+      <DividerMd />
 
-      <nav className='flex gap-[4vw]'>
-        <NavLink target="/">Projects</NavLink>
+      <nav className='
+        flex 
+        flex-col lg:flex-row 
+        gap-[4vw]'
+      >
+        <NavLink target="/">Home / Projects</NavLink>
         <NavLink isActive={true} target="/blog">Blog</NavLink>
       </nav>
-
-      <DividerLg />
     </BaseHeader>
   )
 }
@@ -33,22 +37,18 @@ const HeaderNormal = ({ data }) => {
 const HeaderBlog = ({ data }) => {
   return (
     <BaseHeader>
-
       <BackLink>
         <span className='text-xs lg:text-lg'>←</span>
         <p className='text-xs lg:text-lg'>Back</p>
       </BackLink>
 
-      <DividerLg />
+      <DividerMd />
 
       <PageTitle>{data.mdx.frontmatter.title}</PageTitle>
       
-      <DividerLg />
+      <DividerMd />
 
-      <p className='italic text-xs lg:text-lg' >{data.mdx.frontmatter.date}</p>
-
-      <DividerLg />
-
+      <p className='font-bold text-xs lg:text-lg opacity-50' >{data.mdx.frontmatter.date}</p>
     </BaseHeader>
   )
 }

@@ -2,13 +2,18 @@ import * as React from 'react'
 import { Link, navigate } from 'gatsby'
 
 
-export const NavLink = ({ target, isActive, children }) => {
+export const NavLink = ({ target, children }) => {
   return (
     <Link className={`
-      font-bold lg:text-lg
-      bg-gradient-to-r from-harits-blue-2 to-harits-blue-3 
+      font-bold 
+      text-sm lg:text-lg
+      bg-harits-blue-2
+      hover:bg-harits-blue-3
+      transition-all duration-500
       rounded-full
-      px-8 py-3
+      px-4 py-2
+      lg:px-8 lg:py-3
+      text-center
     `}
       to={target}
     >

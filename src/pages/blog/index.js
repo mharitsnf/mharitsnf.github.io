@@ -2,15 +2,15 @@ import * as React from 'react'
 import { graphql } from 'gatsby'
 import PageContainer from '../../components/layout'
 import Seo from '../../components/seo'
-import { BlogCard, Subtitle, DividerLg } from '../../components/content'
+import { BlogCard, Subtitle, Pg } from '../../components/content'
 
 
 const BlogPage = ({ location, data }) => {
   return (
     <PageContainer>
       <Subtitle>Blogs</Subtitle>
-      <DividerLg />
       {
+        data.allMdx.nodes.length === 0 ? <Pg className="opacity-50 italic">No content found.</Pg> : 
         data.allMdx.nodes.map((node) => (
           <BlogCard node={node} key={node.id} />
         ))
@@ -31,8 +31,8 @@ export const query = graphql`
           date(formatString: "DD MMMM YYYY")
           title
           slug
-          hero_image_alt
-          hero_image {
+          thumbnail_image_alt
+          thumbnail_image {
             childImageSharp {
               gatsbyImageData
             }

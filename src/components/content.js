@@ -6,36 +6,36 @@ import { GatsbyImage, getImage } from 'gatsby-plugin-image'
 // TEXTS ==============================
 export const PageTitle = ({ children }) => {
   return (
-    <h1 className='font-bold text-3xl lg:text-5xl'>{children}</h1>
+    <h1 className='font-bold text-3xl xl:text-5xl'>{children}</h1>
   )
 }
 
 
 export const Subtitle = ({ children, className }) => {
   return (
-    <h2 className={`font-bold text-lg lg:text-xl pb-[3vh] lg:pb-[3vh] ${className}`}>{children}</h2>
+    <h2 className={`font-bold text-lg xl:text-xl pb-[3vh] xl:pb-[3vh] ${className}`}>{children}</h2>
   )
 }
 
 
 export const Pg = ({ children, className }) => {
-  return <p className={`lg:text-lg pb-[2vh] lg:pb-[1.5vh] ${className}`}>{children}</p>
+  return <p className={`xl:text-lg pb-[2vh] xl:pb-[1.5vh] ${className}`}>{children}</p>
 }
 
 
 export const Li = ({ children, className }) => {
-  return <li className={`lg:text-lg pb-[2vh] lg:pb-[1.5vh] ${className}`}>{children}</li>
+  return <li className={`xl:text-lg pb-[2vh] xl:pb-[1.5vh] ${className}`}>{children}</li>
 }
 
 
 // DIVIDERS ==============================
 export const DividerLg = () => {
-  return <div className='py-[6vh] lg:py-[8vh]'></div>
+  return <div className='py-[6vh] xl:py-[8vh]'></div>
 }
 
 
 export const DividerMd = () => {
-  return <div className='py-[3vh] lg:py-[4vh]'></div>
+  return <div className='py-[3vh] xl:py-[4vh]'></div>
 }
 
 // CARDS ==============================
@@ -45,7 +45,7 @@ export const BlogCard = ({ node }) => {
   return (
     <Link className='
       flex 
-      flex-col lg:flex-row 
+      flex-col xl:flex-row 
       rounded-lg 
       bg-gradient-to-r from-harits-blue-2 to-harits-blue-3 
       mb-8
@@ -57,7 +57,7 @@ export const BlogCard = ({ node }) => {
 
       {
         image ? <GatsbyImage
-          className='w-auto lg:w-[10vw] lg:h-auto rounded-t-lg lg:rounded-tr-none lg:rounded-l-lg'
+          className='w-auto xl:w-[10vw] xl:h-auto rounded-t-lg xl:rounded-tr-none xl:rounded-l-lg'
           image={image}
           alt={node.frontmatter.thumbnail_image_alt}
         /> : null
@@ -80,7 +80,7 @@ const ProjectCard = ({ node }) => {
     <Link className='
       group relative
       transition duration-500
-      w-auto h-[30vh] lg:h-[25vh] 
+      w-auto h-[30vh] xl:h-[25vh] 
       rounded-lg' 
       to={`/project/${node.frontmatter.slug}`}
     >
@@ -112,7 +112,7 @@ export const ProjectSection = ({ sectionTitle, data }) => {
     <section>
       <Subtitle>{sectionTitle}</Subtitle>
 
-      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8'>
+      <div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8'>
         {
           data.nodes.map(node => {
             return (

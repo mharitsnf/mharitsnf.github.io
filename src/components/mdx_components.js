@@ -9,12 +9,12 @@ const MDXPg = ({ children }) => {
 }
 
 const MDXLi = ({ children }) => {
-  return <Li className="w-full pl-2 lg:pl-4">{children}</Li>
+  return <Li className="w-full pl-2 xl:pl-4">{children}</Li>
 }
 
 const MDXOl = ({ children }) => {
   return (
-    <ol className='list-decimal py-[2vh] pl-8 lg:pl-16'>
+    <ol className='list-decimal py-[2vh] pl-8 xl:pl-16'>
       {children}
     </ol>
   )
@@ -26,7 +26,7 @@ const MDXH2 = ({ children }) => {
 
 const Flex = ({ children, className }) => {
   return (
-    <div className={`w-full flex flex-col lg:flex-row gap-4 pb-[2vh] lg:pb-[1.5vh] ${className}`}>
+    <div className={`w-full flex flex-col xl:flex-row gap-4 pb-[2vh] xl:pb-[1.5vh] ${className}`}>
       {children}
     </div>
   )

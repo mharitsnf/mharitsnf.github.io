@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { useStaticQuery, graphql } from 'gatsby'
-import { NavLink, BackLink } from '../components/navigations'
+import { BackLink } from '../components/navigations'
 import { DividerLg, DividerMd, PageTitle } from './content'
 
 
@@ -20,16 +20,16 @@ const HeaderNormal = ({ data }) => {
     <BaseHeader>
       <PageTitle>{data.site.siteMetadata.title}</PageTitle>
       
-      <DividerMd />
+      {/* <DividerMd />
 
       <nav className='
         flex 
-        flex-col lg:flex-row 
+        flex-col xl:flex-row 
         gap-[4vw]'
       >
         <NavLink target="/">Home / Projects</NavLink>
-        <NavLink isActive={true} target="/blog">Blog</NavLink>
-      </nav>
+      </nav> */}
+      
     </BaseHeader>
   )
 }
@@ -38,8 +38,8 @@ const HeaderBlog = ({ data }) => {
   return (
     <BaseHeader>
       <BackLink>
-        <span className='text-xs lg:text-lg'>←</span>
-        <p className='text-xs lg:text-lg'>Back</p>
+        <span className='text-xs xl:text-lg'>←</span>
+        <p className='text-xs xl:text-lg'>Back</p>
       </BackLink>
 
       <DividerMd />
@@ -48,7 +48,7 @@ const HeaderBlog = ({ data }) => {
       
       <DividerMd />
 
-      <p className='font-bold text-xs lg:text-lg opacity-50' >{data.mdx.frontmatter.date}</p>
+      <p className='font-bold text-xs xl:text-lg opacity-50' >{data.mdx.frontmatter.date}</p>
     </BaseHeader>
   )
 }

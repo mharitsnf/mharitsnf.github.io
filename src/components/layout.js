@@ -5,7 +5,7 @@ import { DividerLg, Pg } from './content'
 
 const PageContainer = ({ pageTitle, mode, children, extData }) => {
   return (
-    <div className='container mx-auto py-16 px-16 lg:px-[20vw] lg:px-52'>
+    <div className='container mx-auto py-16 px-16 xl:px-[20vw] xl:px-52'>
 
       <Headers mode={mode} extData={extData} />
 
@@ -16,7 +16,7 @@ const PageContainer = ({ pageTitle, mode, children, extData }) => {
 
       <DividerLg />
 
-      <Pg className="opacity-30">Harits Nur Fauzan</Pg>
+      <Pg className="opacity-30">Harits Nur Fauzan 2023</Pg>
 
       <DividerLg />
     </div>

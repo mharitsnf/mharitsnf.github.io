@@ -6,13 +6,13 @@ export const NavLink = ({ target, children }) => {
   return (
     <Link className={`
       font-bold 
-      text-sm lg:text-lg
+      text-sm xl:text-lg
       bg-harits-blue-2
       hover:bg-harits-blue-3
       transition-all duration-500
       rounded-full
       px-4 py-2
-      lg:px-8 lg:py-3
+      xl:px-8 xl:py-3
       text-center
     `}
       to={target}
@@ -32,7 +32,7 @@ export const BackLink = ({ children }) => {
 export const NavLinkOut = ({ target, children }) => {
   return (
     <a className='
-        text-sm md:text-md lg:text-lg
+        text-sm md:text-md lg:text-lg xl:text-lg
         underline underline-offset-2'
       href={target} target="_blank" rel="noopener noreferrer"
     >

@@ -1,0 +1,38 @@
+---
+title: "Hello Spring in Blender"
+date: "2023-12-01"
+slug: "hello-spring"
+thumbnail_image: "./thumbnail.png"
+thumbnail_image_alt: "Hello Spring"
+---
+
+import thumbnail from "./thumbnail.png"
+import render from "./hello-spring-compressed.mp4"
+
+<FlexMedia>
+    <Img src={thumbnail} alt="Hello spring thumbnail" />
+    <Video src={render} />
+</FlexMedia>
+
+---
+
+## Project Links
+
+<Flex>
+    <NavLinkOut target="https://x.com/amelicart/status/1375802354960715785?s=20" >Original Drawing</NavLinkOut>
+</Flex>
+
+---
+
+## Description
+This is a scene originally drawn by Amelicart, which I recreated in Blender. The goal for this project
+was for me to learn about high-er poly character creation in Blender, starting from creating the character block-out,
+sculpting, retopology, and then rigging and animating.
+
+I also wanted to learn about how to create such non-photorealistic rendering (NPR) scenes in Blender,
+so that's another reason to use this painting as the main reference. To create the outline, I used
+grease pencil and inverted hull using Blender's geometry nodes. To create the toon look, I created a simple
+two-tone shader and added some noise to simulate the painting strokes. Finally, I also added some grain to the main
+image and the edge-detected image to further simulate the strokes.
+
+---

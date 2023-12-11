@@ -9,6 +9,25 @@ import { NavLinkOut } from '../components/navigations'
 const IndexPage = () => {
   const data = useStaticQuery(graphql`
     query {
+      blender: allMdx(
+        sort: {frontmatter: {date: DESC}}
+        filter: {internal: {contentFilePath: {regex: "/project/blender/"}}}
+      ) {
+        nodes {
+          frontmatter {
+            date(formatString: "DD MMMM YYYY")
+            title
+            slug
+            thumbnail_image {
+              childImageSharp {
+                gatsbyImageData
+              }
+            }
+            thumbnail_image_alt
+          }
+          id
+        }
+      }
       godot: allMdx(
         sort: {frontmatter: {date: DESC}}
         filter: {internal: {contentFilePath: {regex: "/project/godot/"}}}
@@ -103,6 +122,7 @@ const IndexPage = () => {
 
       <DividerMd />
 
+      <ProjectSection sectionTitle={"Blender Projects"} data={data.blender} />
       <ProjectSection sectionTitle={"Unity Projects"} data={data.unity} />
       <ProjectSection sectionTitle={"Godot Projects"} data={data.godot} />
       <ProjectSection sectionTitle={"Other Software Engineering Projects"} data={data.apps} />

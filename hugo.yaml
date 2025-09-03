@@ -1,8 +1,9 @@
-baseURL: https://example.org/
+baseURL: https://mharitsnf.github.io/
 languageCode: en-us
 title: Harits Nur Fauzan
 theme: ["PaperMod"]
 params:
+  env: production
   ShowBreadCrumbs: true
 
   homeInfoParams:

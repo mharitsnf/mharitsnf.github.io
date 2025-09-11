@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Harits Nur Fauzan</title>
-    <link>http://localhost:1313/</link>
+    <link>//localhost:1313/</link>
     <description>Recent content on Harits Nur Fauzan</description>
-    <generator>Hugo -- 0.149.0</generator>
-    <language>en-us</language>
+    <generator>Hugo</generator>
+    <language>en</language>
     <lastBuildDate>Wed, 03 Sep 2025 18:09:51 +0200</lastBuildDate>
-    <atom:link href="http://localhost:1313/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="//localhost:1313/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>Spherical Gerstner Wave for Planets</title>
-      <link>http://localhost:1313/posts/spherical-gerstner-waves/</link>
+      <title>Spherical Gerstner Wave</title>
+      <link>//localhost:1313/posts/spherical-gerstner-waves/</link>
       <pubDate>Wed, 03 Sep 2025 18:09:51 +0200</pubDate>
-      <guid>http://localhost:1313/posts/spherical-gerstner-waves/</guid>
-      <description>Implementing ocean shader for planets in Godot Engine 4</description>
+      <guid>//localhost:1313/posts/spherical-gerstner-waves/</guid>
+      <description>Vertex shader implementation for real-time ocean simulation in planets</description>
     </item>
   </channel>
 </rss>

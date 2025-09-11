@@ -1,6 +1,12 @@
 /* Placeholder file for your custom settings. */
 /* You can get the color scheme variables from https://panr.github.io/terminal-css/ */
 
+:root {
+    --background: #1b0f3d;
+    --foreground: #ffffff;
+    --accent: #dd855c;
+}
+
 img {
     margin-left: auto;
     margin-right: auto;

@@ -3,7 +3,7 @@ title = "Spherical Gerstner Wave: Vertex Shader"
 date = 2025-09-03T18:09:51+02:00
 summary = "Vertex shader implementation for real-time ocean simulation in planets in Godot Engine 4."
 readingTime = true
-draft = false
+draft = true
 +++
 
 ---

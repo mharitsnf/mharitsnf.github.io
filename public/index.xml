@@ -15,5 +15,12 @@
       <guid>//localhost:1313/posts/spherical-gerstner-waves/</guid>
       <description>Vertex shader implementation for real-time ocean simulation in planets</description>
     </item>
+    <item>
+      <title>About</title>
+      <link>//localhost:1313/about/</link>
+      <pubDate>Fri, 25 Jan 2019 00:00:00 +0000</pubDate>
+      <guid>//localhost:1313/about/</guid>
+      <description>&lt;h1 id=&#34;hello-there&#34;&gt;Hello there!&lt;/h1&gt;&#xA;&lt;p&gt;My name is Harits and this is mostly a collection of my ways of working around the projects that I&amp;rsquo;m working on. Mostly related to game development, computer graphics, or 3D stuff.&lt;/p&gt;</description>
+    </item>
   </channel>
 </rss>

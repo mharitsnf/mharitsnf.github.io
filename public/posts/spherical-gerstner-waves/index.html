@@ -2,11 +2,11 @@
 <html lang="en">
 <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
   
-    <title>Spherical Gerstner Wave :: Harits Nur Fauzan</title>
+    <title>Spherical Gerstner Wave: Vertex Shader :: Harits Nur Fauzan</title>
   
   <meta http-equiv="content-type" content="text/html; charset=utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Vertex shader implementation for real-time ocean simulation in planets" />
+<meta name="description" content="Vertex shader implementation for real-time ocean simulation in planets in Godot Engine 4." />
 <meta name="keywords" content="" />
 
   <meta name="robots" content="noodp" />
@@ -57,7 +57,7 @@
   <link rel="stylesheet" href="//localhost:1313/css/terms.min.b81791663c3790e738e571cdbf802312390d30e4b1d8dc9d814a5b5454d0ac11.css">
 
 
-
+<link rel="stylesheet" href="//localhost:1313/terminal.css">
 
 
 
@@ -77,8 +77,8 @@
 
 <meta property="og:locale" content="en" />
 <meta property="og:type" content="article" />
-<meta property="og:title" content="Spherical Gerstner Wave">
-<meta property="og:description" content="Vertex shader implementation for real-time ocean simulation in planets" />
+<meta property="og:title" content="Spherical Gerstner Wave: Vertex Shader">
+<meta property="og:description" content="Vertex shader implementation for real-time ocean simulation in planets in Godot Engine 4." />
 <meta property="og:url" content="//localhost:1313/posts/spherical-gerstner-waves/" />
 <meta property="og:site_name" content="Harits Nur Fauzan" />
 
@@ -157,12 +157,16 @@
     
 <article class="post">
   <h1 class="post-title">
-    <a href="//localhost:1313/posts/spherical-gerstner-waves/">Spherical Gerstner Wave</a>
+    <a href="//localhost:1313/posts/spherical-gerstner-waves/">Spherical Gerstner Wave: Vertex Shader</a>
   </h1>
-  <div class="post-meta"><time class="post-date">2025-09-03</time><span class="post-reading-time">4 min read (709 words)</span></div>
+  <div class="post-meta"><time class="post-date">2025-09-03</time><span class="post-reading-time">4 min read (730 words)</span></div>
 
   
   
+  <img src="/posts/spherical-gerstner-waves/cover.gif"
+    class="post-cover"
+    alt="Spherical Gerstner Wave: Vertex Shader"
+    title="Cover Image" />
 
 
   
@@ -172,13 +176,19 @@
 <p>I spent the past few days trying to figure out how to properly simulate ocean waves for spherical levels in video games. I managed to do it for flat surfaces thanks to Catlike Coding&rsquo;s awesome walkthrough of the Gerstner Wave, but trying to project a flat plane onto a sphere and making the waves work like before is a different problem, one that I could not solve on my own without external help or sources.</p>
 <p>So I thought there has to be someone smarter than me who had solved this issue before, knowing that we&rsquo;ve had games that features planets with oceans, right? (Looking at you, Giant&rsquo;s Deep in Outer Wilds.) And well, I stumbled upon a paper called <a href="https://cescg.org/cescg_submission/real-time-rendering-of-procedurally-generated-planets/"><em>Real-Time Rendering of Procedurally Generated Planets</em></a>, written by Florian Michelic and Michael Kenzel which explains how to deal with this exact problem! Usually I&rsquo;d steer clear from scientific papers because they can be rather difficult to comprehend, but honestly it&rsquo;s hard to do that when you&rsquo;re working on computer graphics stuff. So, driven by my curiosity, I managed to implement their method in my game engine of choice, namely Godot Engine 4, and actually had a pretty good time reading the paper as I think it was really well written!</p>
 <p>I think the end result look pretty good (like in the gif); the method they came up with produces waves that are distortion-free, meaning it will look good regardless of where you are, whether you&rsquo;re looking from a certain point on the planet or from the space, and it works wonders with large amount of waves (more detailed) or small amount of waves (more simple, which is what I&rsquo;m after.)</p>
+<video controls preload="auto" width="100%"  playsinline class="html-video">
+    <source src="/posts/spherical-gerstner-waves/overview.mp4" type="video/mp4">
+  <span>Your browser doesn't support embedded videos, but don't worry, you can <a href="/posts/spherical-gerstner-waves/overview.mp4">download it</a> and watch it with your favorite video player!</span>
+</video>
 <hr>
 <h1 id="setting-up-the-scene">Setting Up the Scene<a href="#setting-up-the-scene" class="hanchor" ariaLabel="Anchor">#</a> </h1>
 <p>Let&rsquo;s get started! As I mentioned, I&rsquo;m using Godot Engine 4 because I love this engine and I&rsquo;m quite proficient with it, but you should be able to replicate this in any other engine. At the end of this article, you&rsquo;ll have a spherical gerstner wave implementation in the vertex shader. Note that I&rsquo;m not doing the frament shader for now mainly because I&rsquo;m lazy, and also I haven&rsquo;t got a good art direction for my ocean. I&rsquo;ll come back to that in a future article.</p>
 <p>Firstly, let&rsquo;s create a <code>MeshInstance3D</code> node that would be our main visual, which will hold our shader as well. We want a PlaneMesh for the mesh, and set the size to 2 on both the width and height. This way we can ensure that the bottom left corner of the plane will fall on the coordinates (-1, -1), while the top right corner of the plane will fall on the coordinate (1, 1). This is necessary for the grid projection calculation that we will be doing in the next section.</p>
+<p><img src="/posts/spherical-gerstner-waves/initial-plane.png" alt="Test"></p>
 <p>We also want to set the subdivide width and depth to a number we like. I&rsquo;m setting both the width and depth to 128, as I think it&rsquo;s a good spot for the fidelity I&rsquo;m after. You can crank it up to 256 or 512 to make it even more hi-fi, or lower it to 64 to make it more lo-fi. Just remember, the higher the number, the slower it becomes as the number of vertices the shader will need to operate will also increase.</p>
 <h1 id="projecting-a-plane-onto-a-sphere">Projecting a Plane onto a Sphere<a href="#projecting-a-plane-onto-a-sphere" class="hanchor" ariaLabel="Anchor">#</a> </h1>
 <p>Now, we&rsquo;re ready to jump into the vertex shader itself! The first task is to setup the projection of the plane / grid. This is to ensure that there&rsquo;s no distortion across the whole plane, so it would still look good when viewed from any angle. Let&rsquo;s create a spatial shader file, and save it somewhere in the project.</p>
+<p><img src="/posts/spherical-gerstner-waves/material-setup.png" alt="Material setup"></p>
 <p>The basic projection method (that is not distortion-free) invovles raising the plane (increasing the Y position of the plane), normalizing the vertices so that we would get its vertex position on a unit sphere, and then multiplying that value with our desired planet radius. Let&rsquo;s try that method first; we firstly add a new uniform variable in the shader called <code>y_offset</code> and <code>radius</code>, and then do the calculation:</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-glsl" data-lang="glsl"><span class="line"><span class="cl"><span class="n">shader_type</span> <span class="n">spatial</span><span class="p">;</span>
 </span></span><span class="line"><span class="cl">

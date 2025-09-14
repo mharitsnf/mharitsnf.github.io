@@ -9,11 +9,11 @@
     <lastBuildDate>Wed, 03 Sep 2025 18:09:51 +0200</lastBuildDate>
     <atom:link href="//localhost:1313/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>Spherical Gerstner Wave</title>
+      <title>Spherical Gerstner Wave: Vertex Shader</title>
       <link>//localhost:1313/posts/spherical-gerstner-waves/</link>
       <pubDate>Wed, 03 Sep 2025 18:09:51 +0200</pubDate>
       <guid>//localhost:1313/posts/spherical-gerstner-waves/</guid>
-      <description>Vertex shader implementation for real-time ocean simulation in planets</description>
+      <description>Vertex shader implementation for real-time ocean simulation in planets in Godot Engine 4.</description>
     </item>
     <item>
       <title>About</title>

@@ -6,7 +6,7 @@
   
   <meta http-equiv="content-type" content="text/html; charset=utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Vertex shader implementation for real-time ocean simulation in planets in Godot Engine 4." />
+<meta name="description" content="Ocean simulation vertex shader breakdown for simulating planets in Godot 4." />
 <meta name="keywords" content="" />
 
   <meta name="robots" content="noodp" />
@@ -78,7 +78,7 @@
 <meta property="og:locale" content="en" />
 <meta property="og:type" content="article" />
 <meta property="og:title" content="Spherical Gerstner Wave: Vertex Shader">
-<meta property="og:description" content="Vertex shader implementation for real-time ocean simulation in planets in Godot Engine 4." />
+<meta property="og:description" content="Ocean simulation vertex shader breakdown for simulating planets in Godot 4." />
 <meta property="og:url" content="//localhost:1313/posts/spherical-gerstner-waves/" />
 <meta property="og:site_name" content="Harits Nur Fauzan" />
 
@@ -159,11 +159,19 @@
   <h1 class="post-title">
     <a href="//localhost:1313/posts/spherical-gerstner-waves/">Spherical Gerstner Wave: Vertex Shader</a>
   </h1>
-  <div class="post-meta"><time class="post-date">2025-09-03</time><span class="post-reading-time">4 min read (730 words)</span></div>
+  <div class="post-meta"><time class="post-date">2025-09-03</time><span class="post-reading-time">6 min read (1176 words)</span></div>
 
   
+    <span class="post-tags">
+      
+      #<a href="//localhost:1313/tags/godot/">godot</a>&nbsp;
+      
+      #<a href="//localhost:1313/tags/computer-graphics/">computer-graphics</a>&nbsp;
+      
+    </span>
   
-  <img src="/posts/spherical-gerstner-waves/cover.gif"
+  
+  <img src="/posts/spherical-gerstner-waves/cover.png"
     class="post-cover"
     alt="Spherical Gerstner Wave: Vertex Shader"
     title="Cover Image" />
@@ -173,23 +181,26 @@
 
   <div class="post-content"><div>
         <hr>
-<p>I spent the past few days trying to figure out how to properly simulate ocean waves for spherical levels in video games. I managed to do it for flat surfaces thanks to Catlike Coding&rsquo;s awesome walkthrough of the Gerstner Wave, but trying to project a flat plane onto a sphere and making the waves work like before is a different problem, one that I could not solve on my own without external help or sources.</p>
+<p>I spent the past few days trying to figure out how to properly simulate ocean waves for spherical levels in video games. I managed to do it for flat surfaces thanks to Catlike Coding&rsquo;s awesome walkthrough of the Gerstner Wave, but trying to project a flat plane onto a sphere and making the waves work like before is a different problem, one that I could not solve on my own.</p>
 <p>So I thought there has to be someone smarter than me who had solved this issue before, knowing that we&rsquo;ve had games that features planets with oceans, right? (Looking at you, Giant&rsquo;s Deep in Outer Wilds.) And well, I stumbled upon a paper called <a href="https://cescg.org/cescg_submission/real-time-rendering-of-procedurally-generated-planets/"><em>Real-Time Rendering of Procedurally Generated Planets</em></a>, written by Florian Michelic and Michael Kenzel which explains how to deal with this exact problem! Usually I&rsquo;d steer clear from scientific papers because they can be rather difficult to comprehend, but honestly it&rsquo;s hard to do that when you&rsquo;re working on computer graphics stuff. So, driven by my curiosity, I managed to implement their method in my game engine of choice, namely Godot Engine 4, and actually had a pretty good time reading the paper as I think it was really well written!</p>
-<p>I think the end result look pretty good (like in the gif); the method they came up with produces waves that are distortion-free, meaning it will look good regardless of where you are, whether you&rsquo;re looking from a certain point on the planet or from the space, and it works wonders with large amount of waves (more detailed) or small amount of waves (more simple, which is what I&rsquo;m after.)</p>
+<p>I&rsquo;m quite satisfied with the result (you can see in the video below); the method they came up with produces waves that are distortion-free, meaning it will look good regardless of where you are, whether you&rsquo;re looking from a certain point on the planet or from the space, and it works wonders with large amount of waves (more detailed) or small amount of waves (more simple, which is what I&rsquo;m after.)
 <video controls preload="auto" width="100%"  playsinline class="html-video">
     <source src="/posts/spherical-gerstner-waves/overview.mp4" type="video/mp4">
   <span>Your browser doesn't support embedded videos, but don't worry, you can <a href="/posts/spherical-gerstner-waves/overview.mp4">download it</a> and watch it with your favorite video player!</span>
 </video>
+I used 20 waves in the video, in which you can play around with the plane size and the radius. You can also tweak the amplitude, frequency, and time scale of the waves. It is also possible to change the orientation of the plane using the basis uniform.</p>
 <hr>
 <h1 id="setting-up-the-scene">Setting Up the Scene<a href="#setting-up-the-scene" class="hanchor" ariaLabel="Anchor">#</a> </h1>
-<p>Let&rsquo;s get started! As I mentioned, I&rsquo;m using Godot Engine 4 because I love this engine and I&rsquo;m quite proficient with it, but you should be able to replicate this in any other engine. At the end of this article, you&rsquo;ll have a spherical gerstner wave implementation in the vertex shader. Note that I&rsquo;m not doing the frament shader for now mainly because I&rsquo;m lazy, and also I haven&rsquo;t got a good art direction for my ocean. I&rsquo;ll come back to that in a future article.</p>
-<p>Firstly, let&rsquo;s create a <code>MeshInstance3D</code> node that would be our main visual, which will hold our shader as well. We want a PlaneMesh for the mesh, and set the size to 2 on both the width and height. This way we can ensure that the bottom left corner of the plane will fall on the coordinates (-1, -1), while the top right corner of the plane will fall on the coordinate (1, 1). This is necessary for the grid projection calculation that we will be doing in the next section.</p>
+<p>Let&rsquo;s get started! As I mentioned, I&rsquo;m using Godot Engine 4, but you should be able to replicate this in any other engine. At the end of this article, you&rsquo;ll have a spherical gerstner wave implementation in the vertex shader.</p>
+<p>Note that I&rsquo;m not doing the frament shader for now mainly because I&rsquo;m lazy, and also I haven&rsquo;t got a good art direction for my ocean. I&rsquo;ll come back to that in a future article.</p>
+<p>Firstly, let&rsquo;s create a <code>MeshInstance3D</code> node that would be our main visual, which will hold our shader material as well. We want a PlaneMesh for the mesh, and set the size to 2 on both the width and height. This way we can ensure that the bottom left corner of the plane will fall on the coordinates (-1, -1), while the top right corner of the plane will fall on the coordinate (1, 1). This is necessary for the grid projection calculation that we will be doing in the next section.</p>
 <p><img src="/posts/spherical-gerstner-waves/initial-plane.png" alt="Test"></p>
 <p>We also want to set the subdivide width and depth to a number we like. I&rsquo;m setting both the width and depth to 128, as I think it&rsquo;s a good spot for the fidelity I&rsquo;m after. You can crank it up to 256 or 512 to make it even more hi-fi, or lower it to 64 to make it more lo-fi. Just remember, the higher the number, the slower it becomes as the number of vertices the shader will need to operate will also increase.</p>
-<h1 id="projecting-a-plane-onto-a-sphere">Projecting a Plane onto a Sphere<a href="#projecting-a-plane-onto-a-sphere" class="hanchor" ariaLabel="Anchor">#</a> </h1>
-<p>Now, we&rsquo;re ready to jump into the vertex shader itself! The first task is to setup the projection of the plane / grid. This is to ensure that there&rsquo;s no distortion across the whole plane, so it would still look good when viewed from any angle. Let&rsquo;s create a spatial shader file, and save it somewhere in the project.</p>
-<p><img src="/posts/spherical-gerstner-waves/material-setup.png" alt="Material setup"></p>
-<p>The basic projection method (that is not distortion-free) invovles raising the plane (increasing the Y position of the plane), normalizing the vertices so that we would get its vertex position on a unit sphere, and then multiplying that value with our desired planet radius. Let&rsquo;s try that method first; we firstly add a new uniform variable in the shader called <code>y_offset</code> and <code>radius</code>, and then do the calculation:</p>
+<p>Now, let&rsquo;s create a spatial shader file (I call mine <code>ocean.shader</code>), and save it somewhere in the project (I put mine in the root of the project). After that, let&rsquo;s also create a material based on that shader called <code>m_ocean.tres</code>, and then assign it to the plane:</p>
+<p><img src="/posts/spherical-gerstner-waves/material-setup.png" alt="Test"></p>
+<hr>
+<h1 id="projection-calculation">Projection Calculation<a href="#projection-calculation" class="hanchor" ariaLabel="Anchor">#</a> </h1>
+<p>Let&rsquo;s start with a basic projection method. The basic projection method (that is not distortion-free) invovles raising the plane (increasing the Y position of the plane), normalizing the vertices so that we would project the vertices onto a unit sphere, and then multiplying that value with our desired planet radius. Let&rsquo;s add new uniform variables in the shader called <code>y_offset</code> and <code>radius</code>, and then do the calculation:</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-glsl" data-lang="glsl"><span class="line"><span class="cl"><span class="n">shader_type</span> <span class="n">spatial</span><span class="p">;</span>
 </span></span><span class="line"><span class="cl">
 </span></span><span class="line"><span class="cl"><span class="k">uniform</span> <span class="k">float</span> <span class="n">y_offset</span> <span class="o">=</span> <span class="mf">100.</span><span class="p">;</span>
@@ -200,9 +211,46 @@
 </span></span><span class="line"><span class="cl">    <span class="n">init_vertex</span><span class="p">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">y_offset</span><span class="p">;</span>
 </span></span><span class="line"><span class="cl">    <span class="n">VERTEX</span> <span class="o">=</span> <span class="n">normalize</span><span class="p">(</span><span class="n">init_vertex</span><span class="p">)</span> <span class="o">*</span> <span class="n">radius</span><span class="p">;</span>
 </span></span><span class="line"><span class="cl"><span class="p">}</span>
-</span></span></code></pre></div><h1 id="spherical-gerstner-wave">Spherical Gerstner Wave<a href="#spherical-gerstner-wave" class="hanchor" ariaLabel="Anchor">#</a> </h1>
+</span></span></code></pre></div><p>This is how it looks like with <code>y_offset</code> equals to <code>1.5</code> and <code>radius</code> equals to <code>100.0</code>:</p>
+<p><img src="/posts/spherical-gerstner-waves/1-1-basic-projection.png" alt="Basic projection"></p>
+<p>It looks okay, but you can see the distortion problem when you set the <code>y_offset</code> value to something close to <code>0.0</code> (which transforms the plane into a hemisphere), and change the view mode to wireframe mode:</p>
+<p><img src="/posts/spherical-gerstner-waves/1-2-distorted.png" alt="Distorted projection"></p>
+<p>The vertices are concentrated on the bottom part, leaving the top part with very few vertices for us to operate on.</p>
+<p>The projection method proposed in the paper involves adding an extra calculation on the <code>init_vertex.y</code> variable so that it transforms the plane into something resembling a dome using the <code>pow(x,y)</code> function, before finally adding the <code>y_offset</code> value onto <code>init_vertex.y</code> again:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-glsl" data-lang="glsl"><span class="line"><span class="cl"><span class="p">...</span>
+</span></span><span class="line"><span class="cl"><span class="k">uniform</span> <span class="k">float</span> <span class="n">y_exponent</span> <span class="o">=</span> <span class="mf">4.0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">...</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">void</span> <span class="n">vertex</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">vec3</span> <span class="n">init_vertex</span> <span class="o">=</span> <span class="n">VERTEX</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="n">init_vertex</span><span class="p">.</span><span class="n">y</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.</span> <span class="o">-</span> <span class="n">pow</span><span class="p">(</span><span class="n">abs</span><span class="p">(</span><span class="n">init_vertex</span><span class="p">.</span><span class="n">x</span><span class="p">),</span> <span class="n">y_exponent</span><span class="p">))</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.</span> <span class="o">-</span> <span class="n">pow</span><span class="p">(</span><span class="n">abs</span><span class="p">(</span><span class="n">init_vertex</span><span class="p">.</span><span class="n">z</span><span class="p">),</span> <span class="n">y_exponent</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl">    <span class="k">vec3</span> <span class="n">offset</span> <span class="o">=</span> <span class="k">vec3</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="n">y_offset</span><span class="p">,</span> <span class="mf">0.</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="n">VERTEX</span> <span class="o">=</span> <span class="n">normalize</span><span class="p">(</span><span class="n">init_vertex</span><span class="p">)</span> <span class="o">*</span> <span class="n">radius</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><p>This is how it looks like with the same value, where <code>y_offset</code> equals to <code>1.5</code> and <code>radius</code> equals to <code>100.0</code>:</p>
+<p><img src="/posts/spherical-gerstner-waves/1-3-no-distortion.png" alt="No distortion projection"></p>
+<p>As you can see, the distortion is no longer there. We can keep the <code>y_exponent</code> value to <code>4.0</code> as we have right now, but you can tweak that around. The paper mentions that setting the <code>y_exponent</code> value to <code>2.0</code> also works pretty good, but overall <code>4.0</code> looks the best.</p>
+<p>Technically, we are done with the projection. But, while we&rsquo;re at it, lets add a new uniform called <code>basis</code>:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-glsl" data-lang="glsl"><span class="line"><span class="cl"><span class="p">...</span>
+</span></span><span class="line"><span class="cl"><span class="k">uniform</span> <span class="k">float</span> <span class="n">y_offset</span> <span class="o">=</span> <span class="mf">100.</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="k">uniform</span> <span class="k">float</span> <span class="n">radius</span> <span class="o">=</span> <span class="mf">1000.</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="k">uniform</span> <span class="n">mat3</span> <span class="n">basis</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">...</span>
+</span></span></code></pre></div><p>And apply the <code>basis</code> to the projection calculation:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-glsl" data-lang="glsl"><span class="line"><span class="cl"><span class="p">...</span>
+</span></span><span class="line"><span class="cl">    <span class="k">vec3</span> <span class="n">init_vertex</span> <span class="o">=</span> <span class="n">VERTEX</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="n">init_vertex</span><span class="p">.</span><span class="n">y</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.</span> <span class="o">-</span> <span class="n">pow</span><span class="p">(</span><span class="n">abs</span><span class="p">(</span><span class="n">init_vertex</span><span class="p">.</span><span class="n">x</span><span class="p">),</span> <span class="n">y_exponent</span><span class="p">))</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.</span> <span class="o">-</span> <span class="n">pow</span><span class="p">(</span><span class="n">abs</span><span class="p">(</span><span class="n">init_vertex</span><span class="p">.</span><span class="n">z</span><span class="p">),</span> <span class="n">y_exponent</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl">    <span class="k">vec3</span> <span class="n">rotated_vertex</span> <span class="o">=</span> <span class="n">basis</span> <span class="o">*</span> <span class="n">init_vertex</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">vec3</span> <span class="n">rotated_offset</span> <span class="o">=</span> <span class="n">basis</span> <span class="o">*</span> <span class="k">vec3</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="n">y_offset</span><span class="p">,</span> <span class="mf">0.</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="k">vec3</span> <span class="n">grid</span> <span class="o">=</span> <span class="n">normalize</span><span class="p">(</span><span class="n">rotated_offset</span> <span class="o">+</span> <span class="n">rotated_vertex</span><span class="p">)</span> <span class="o">*</span> <span class="n">radius</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="n">VERTEX</span> <span class="o">=</span> <span class="n">grid</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">...</span>
+</span></span></code></pre></div><p>Now, we can use update this <code>basis</code> uniform when we want to rotate the plane. For example, this is the result when I change the basis to <code>(0.0, 1.0, 0.0), (-1.0, 0.0, 0.0), (0.0, 0.0, 1.0)</code>, which essentially making the plane to face right:</p>
+<p><img src="/posts/spherical-gerstner-waves/1-4-rotated.png" alt="No distortion projection"></p>
+<p>By playing around with the <code>y_offset</code> and updating the <code>basis</code> accordingly, we can create the effect of having the planet covered in water when we look at it from the space by setting the <code>y_offset</code> to something close to <code>0.0</code>, whereas when we get closer to the planet surface, we can increase the value to something like <code>1.5</code> so that the ocean plane would shrink, only to cover the necessary area around the camera.</p>
+<p>Cool! Now let&rsquo;s continue to the Gerstner wave calculation.</p>
 <hr>
-<h1 id="conclusion">Conclusion<a href="#conclusion" class="hanchor" ariaLabel="Anchor">#</a> </h1>
+<h1 id="gerstner-wave-calculation">Gerstner Wave Calculation<a href="#gerstner-wave-calculation" class="hanchor" ariaLabel="Anchor">#</a> </h1>
 
       </div></div>
 

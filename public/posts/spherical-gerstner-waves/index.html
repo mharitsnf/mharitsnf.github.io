@@ -159,7 +159,7 @@
   <h1 class="post-title">
     <a href="//localhost:1313/posts/spherical-gerstner-waves/">Spherical Gerstner Wave: Vertex Shader</a>
   </h1>
-  <div class="post-meta"><time class="post-date">2025-09-03</time><span class="post-reading-time">6 min read (1176 words)</span></div>
+  <div class="post-meta"><time class="post-date">2025-09-03</time><span class="post-reading-time">13 min read (2684 words)</span></div>
 
   
     <span class="post-tags">
@@ -200,7 +200,7 @@ I used 20 waves in the video, in which you can play around with the plane size a
 <p><img src="/posts/spherical-gerstner-waves/material-setup.png" alt="Test"></p>
 <hr>
 <h1 id="projection-calculation">Projection Calculation<a href="#projection-calculation" class="hanchor" ariaLabel="Anchor">#</a> </h1>
-<p>Let&rsquo;s start with a basic projection method. The basic projection method (that is not distortion-free) invovles raising the plane (increasing the Y position of the plane), normalizing the vertices so that we would project the vertices onto a unit sphere, and then multiplying that value with our desired planet radius. Let&rsquo;s add new uniform variables in the shader called <code>y_offset</code> and <code>radius</code>, and then do the calculation:</p>
+<p>Let&rsquo;s start with the basic projection method. The basic projection method (that is not distortion-free) involves raising the plane (increasing the Y position of the plane), normalizing the vertices so that we would project the vertices onto a unit sphere, and then multiplying that value with our desired planet radius. Let&rsquo;s add new uniform variables in the shader called <code>y_offset</code> and <code>radius</code>, and then do the calculation:</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-glsl" data-lang="glsl"><span class="line"><span class="cl"><span class="n">shader_type</span> <span class="n">spatial</span><span class="p">;</span>
 </span></span><span class="line"><span class="cl">
 </span></span><span class="line"><span class="cl"><span class="k">uniform</span> <span class="k">float</span> <span class="n">y_offset</span> <span class="o">=</span> <span class="mf">100.</span><span class="p">;</span>
@@ -215,8 +215,8 @@ I used 20 waves in the video, in which you can play around with the plane size a
 <p><img src="/posts/spherical-gerstner-waves/1-1-basic-projection.png" alt="Basic projection"></p>
 <p>It looks okay, but you can see the distortion problem when you set the <code>y_offset</code> value to something close to <code>0.0</code> (which transforms the plane into a hemisphere), and change the view mode to wireframe mode:</p>
 <p><img src="/posts/spherical-gerstner-waves/1-2-distorted.png" alt="Distorted projection"></p>
-<p>The vertices are concentrated on the bottom part, leaving the top part with very few vertices for us to operate on.</p>
-<p>The projection method proposed in the paper involves adding an extra calculation on the <code>init_vertex.y</code> variable so that it transforms the plane into something resembling a dome using the <code>pow(x,y)</code> function, before finally adding the <code>y_offset</code> value onto <code>init_vertex.y</code> again:</p>
+<p>The vertices are concentrated on the bottom part, leaving the top part with very few vertices for us to operate on. On top of that, if you decrease the <code>y_offset</code> value to lower than <code>0.0</code>, the plane will wrap its back onto the other way of the planet.</p>
+<p>The projection method proposed in the paper involves adding an extra calculation on the <code>init_vertex.y</code> so that it transforms the plane into something resembling a dome using the <code>pow(x,y)</code> function, before finally adding the <code>y_offset</code> value onto <code>init_vertex.y</code> again:</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-glsl" data-lang="glsl"><span class="line"><span class="cl"><span class="p">...</span>
 </span></span><span class="line"><span class="cl"><span class="k">uniform</span> <span class="k">float</span> <span class="n">y_exponent</span> <span class="o">=</span> <span class="mf">4.0</span><span class="p">;</span>
 </span></span><span class="line"><span class="cl"><span class="p">...</span>
@@ -251,6 +251,256 @@ I used 20 waves in the video, in which you can play around with the plane size a
 <p>Cool! Now let&rsquo;s continue to the Gerstner wave calculation.</p>
 <hr>
 <h1 id="gerstner-wave-calculation">Gerstner Wave Calculation<a href="#gerstner-wave-calculation" class="hanchor" ariaLabel="Anchor">#</a> </h1>
+<p>Firstly, we need to set up all the necessary variables for the Gerstner function first. Let&rsquo;s add a few uniform variables and those variables in the vertex shader:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-glsl" data-lang="glsl"><span class="line"><span class="cl"><span class="k">void</span> <span class="n">vertex</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="p">...</span>
+</span></span><span class="line"><span class="cl">	
+</span></span><span class="line"><span class="cl">	<span class="k">vec3</span> <span class="n">position_os</span> <span class="o">=</span> <span class="n">grid</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="k">vec3</span> <span class="n">position_os_norm</span> <span class="o">=</span> <span class="n">normalize</span><span class="p">(</span><span class="n">position_os</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="k">float</span> <span class="n">sin_part</span> <span class="o">=</span> <span class="mf">0.</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="k">vec3</span> <span class="n">cos_part</span> <span class="o">=</span> <span class="k">vec3</span><span class="p">(</span><span class="mf">0.</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="k">float</span> <span class="n">sin_part_normal</span> <span class="o">=</span> <span class="mf">0.</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="k">vec3</span> <span class="n">cos_part_normal</span> <span class="o">=</span> <span class="k">vec3</span><span class="p">(</span><span class="mf">0.</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="k">vec3</span> <span class="n">tangent</span> <span class="o">=</span> <span class="k">vec3</span><span class="p">(</span><span class="mf">0.</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><p>Now, let&rsquo;s start setting up the <code>spherical_gerstner_wave</code> function just above the <code>vertex</code> function by defining the variables first:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-glsl" data-lang="glsl"><span class="line"><span class="cl"><span class="k">void</span> <span class="n">spherical_gerstner</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">	<span class="k">vec4</span> <span class="n">wave_data</span><span class="p">,</span> <span class="k">vec3</span> <span class="n">wave_dir</span><span class="p">,</span> <span class="k">vec3</span> <span class="n">pos_os_norm</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">	<span class="k">inout</span> <span class="k">float</span> <span class="n">sin_part</span><span class="p">,</span> <span class="k">inout</span> <span class="k">vec3</span> <span class="n">cos_part</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">	<span class="k">inout</span> <span class="k">float</span> <span class="n">sin_part_normal</span><span class="p">,</span> <span class="k">inout</span> <span class="k">vec3</span> <span class="n">cos_part_normal</span><span class="p">,</span> <span class="k">inout</span> <span class="k">vec3</span> <span class="n">tangent</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">	<span class="k">float</span> <span class="n">amp_scale</span><span class="p">,</span> <span class="k">float</span> <span class="n">s_e0</span><span class="p">,</span> <span class="k">float</span> <span class="n">s_e1</span><span class="p">,</span> <span class="k">float</span> <span class="n">freq_scale</span><span class="p">,</span> <span class="k">float</span> <span class="n">t</span><span class="p">,</span> <span class="k">float</span> <span class="n">r</span><span class="p">,</span> <span class="k">float</span> <span class="n">time</span>
+</span></span><span class="line"><span class="cl"><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><p>Heh, I&rsquo;m sure there are better ways to set this up, but I put lots of variables in this function so that I can move this function to a separate include file. But anyways, let&rsquo;s breakdown the variables here:</p>
+<ol>
+<li><code>vec4 wave_data</code> contains four <code>float</code> values, which represents the amplitude, steepness, frequency, and wave speed;</li>
+<li><code>vec3 wave_dir</code> describes the wave direction (or more precisely where does this wave starts from);</li>
+<li><code>vec3 pos_os_norm</code> describes the normalized vertex position;</li>
+<li><code>inout float sin_part</code> and <code>inout vec3 cos_part</code> will be the input and output of the sum of sine part and the cosine part of the Gerstner wave calculation for the vertex respectively;</li>
+<li>Similarly, <code>inout float sin_part_normal</code> and <code>inout vec3 cos_part_normal</code> will be the input and output of the sum of sine part and the cosine part of the Gerstner wave calculation for the normal vector respectively;</li>
+<li><code>inout vec3 tangent</code> will be the input and output for the tangent vector of the vertex (which we don&rsquo;t really need in the shader calculation, but let&rsquo;s just keep it here for now); and,</li>
+<li>The rest of the variables are the values passed from our uniform variables.</li>
+</ol>
+<p>Before we continue, here&rsquo;s a snippet of the Gerstner calculation for both the vertex and the normal, which we&rsquo;ll be translating into the shader:</p>
+
+<img src="2-1-p-equation.png"  class="center"  style="width: 60%;"    />
+
+
+
+<img src="2-2-normal-equation.png"  class="center"  style="width: 60%;"    />
+
+
+<p>Here you can see that both the sine and cosine components of the vertex and normal calculations are expressed as sums over all <code>N</code> waves. For now, we’ll start with just two waves (meaning <code>N</code> is 2), but later we can generalize this using a loop that iterates over a texture.</p>
+<p>Let&rsquo;s setup the uniform variables for the waves:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-glsl" data-lang="glsl"><span class="line"><span class="cl"><span class="p">...</span>
+</span></span><span class="line"><span class="cl"><span class="n">group_uniforms</span> <span class="n">WaveSettings</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="k">uniform</span> <span class="k">float</span> <span class="n">wave_normal_amount</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="k">uniform</span> <span class="k">float</span> <span class="n">amplitude_scale</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="k">uniform</span> <span class="k">float</span> <span class="n">frequency_scale</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="k">uniform</span> <span class="k">float</span> <span class="n">time_scale</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="k">uniform</span> <span class="k">float</span> <span class="n">steepness_e0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="k">uniform</span> <span class="k">float</span> <span class="n">steepness_e1</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// Optional for now, but we can feed this uniform with data from the</span>
+</span></span><span class="line"><span class="cl"><span class="c1">// CPU if we want to synchronize our game objects with the shader.</span>
+</span></span><span class="line"><span class="cl"><span class="k">uniform</span> <span class="k">float</span> <span class="n">cpu_time</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// Wave 1</span>
+</span></span><span class="line"><span class="cl"><span class="k">uniform</span> <span class="k">vec4</span> <span class="n">wave_1</span> <span class="o">=</span> <span class="k">vec4</span><span class="p">(</span><span class="mf">1.0</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="k">uniform</span> <span class="k">vec3</span> <span class="n">wave_dir_1</span> <span class="o">=</span> <span class="k">vec3</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// Wave 2</span>
+</span></span><span class="line"><span class="cl"><span class="k">uniform</span> <span class="k">vec4</span> <span class="n">wave_2</span> <span class="o">=</span> <span class="k">vec4</span><span class="p">(</span><span class="mf">1.0</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="k">uniform</span> <span class="k">vec3</span> <span class="n">wave_dir_2</span> <span class="o">=</span> <span class="k">vec3</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="p">...</span>
+</span></span></code></pre></div><p>I think most of the variables are self-explanatory, except for two:</p>
+<ol>
+<li><code>wave_normal_amount</code> can be used to as a weight to lerp/mix the normal between directly upwards or completely facing the normal; and,</li>
+<li><code>steepness_e0</code> and <code>steepness_e1</code> are used to avoid the waves from generating loops due to extreme values.</li>
+</ol>
+<p>Cool! Let&rsquo;s update the vertex shader:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-glsl" data-lang="glsl"><span class="line"><span class="cl"><span class="k">void</span> <span class="n">vertex</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="p">...</span>
+</span></span><span class="line"><span class="cl">	<span class="n">spherical_gerstner</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">		<span class="n">wave_1</span><span class="p">,</span> <span class="n">wave_dir_1</span><span class="p">,</span> <span class="n">position_os_norm</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">		<span class="n">sin_part</span><span class="p">,</span> <span class="n">cos_part</span><span class="p">,</span> <span class="n">sin_part_normal</span><span class="p">,</span> <span class="n">cos_part_normal</span><span class="p">,</span> <span class="n">tangent</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">		<span class="n">amplitude_scale</span><span class="p">,</span> <span class="n">steepness_e0</span><span class="p">,</span> <span class="n">steepness_e1</span><span class="p">,</span> <span class="n">frequency_scale</span><span class="p">,</span> <span class="n">time_scale</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">		<span class="n">radius</span><span class="p">,</span> <span class="n">TIME</span>
+</span></span><span class="line"><span class="cl">	<span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="n">spherical_gerstner</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">		<span class="n">wave_2</span><span class="p">,</span> <span class="n">wave_dir_2</span><span class="p">,</span> <span class="n">position_os_norm</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">		<span class="n">sin_part</span><span class="p">,</span> <span class="n">cos_part</span><span class="p">,</span> <span class="n">sin_part_normal</span><span class="p">,</span> <span class="n">cos_part_normal</span><span class="p">,</span> <span class="n">tangent</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">		<span class="n">amplitude_scale</span><span class="p">,</span> <span class="n">steepness_e0</span><span class="p">,</span> <span class="n">steepness_e1</span><span class="p">,</span> <span class="n">frequency_scale</span><span class="p">,</span> <span class="n">time_scale</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">		<span class="n">radius</span><span class="p">,</span> <span class="n">TIME</span>
+</span></span><span class="line"><span class="cl">	<span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><p>We are now calling the <code>spherical_gerstner</code> function but apparently it won&rsquo;t do a thing since we haven&rsquo;t implemented the calculation just yet. So let&rsquo;s get back to it:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-glsl" data-lang="glsl"><span class="line"><span class="cl"><span class="c1">// I&#39;m skipping the parameters because it&#39;s too long, but don&#39;t omit those</span>
+</span></span><span class="line"><span class="cl"><span class="k">void</span> <span class="n">spherical_gerstner</span><span class="p">(...)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="k">vec3</span> <span class="n">wave_dir_norm</span> <span class="o">=</span> <span class="n">normalize</span><span class="p">(</span><span class="n">wave_dir</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="k">float</span> <span class="n">amplitude</span> <span class="o">=</span> <span class="n">amp_scale</span> <span class="o">*</span> <span class="n">wave_data</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="k">float</span> <span class="n">steepness</span> <span class="o">=</span> <span class="n">wave_data</span><span class="p">.</span><span class="n">y</span> <span class="o">*</span> <span class="n">smoothstep</span><span class="p">(</span><span class="mf">1.</span> <span class="o">-</span> <span class="n">abs</span><span class="p">(</span><span class="n">dot</span><span class="p">(</span><span class="n">pos_os_norm</span><span class="p">,</span> <span class="n">wave_dir_norm</span><span class="p">)),</span> <span class="n">s_e0</span><span class="p">,</span> <span class="n">s_e1</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="k">float</span> <span class="n">frequency</span> <span class="o">=</span> <span class="n">wave_data</span><span class="p">.</span><span class="n">z</span> <span class="o">*</span> <span class="n">freq_scale</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="k">float</span> <span class="n">fi</span> <span class="o">=</span> <span class="n">wave_data</span><span class="p">.</span><span class="n">w</span> <span class="o">*</span> <span class="n">t</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="k">vec3</span> <span class="n">di</span> <span class="o">=</span> <span class="n">cross</span><span class="p">(</span><span class="n">pos_os_norm</span><span class="p">,</span> <span class="n">cross</span><span class="p">(</span><span class="n">pos_os_norm</span> <span class="o">-</span> <span class="n">wave_dir_norm</span><span class="p">,</span> <span class="n">pos_os_norm</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl">	<span class="k">float</span> <span class="n">li</span> <span class="o">=</span> <span class="n">acos</span><span class="p">(</span><span class="n">dot</span><span class="p">(</span><span class="n">pos_os_norm</span><span class="p">,</span> <span class="n">wave_dir_norm</span><span class="p">))</span> <span class="o">*</span> <span class="n">r</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="n">sin_part</span> <span class="o">+=</span> <span class="n">amplitude</span> <span class="o">*</span> <span class="n">sin</span><span class="p">(</span><span class="n">frequency</span> <span class="o">*</span> <span class="n">li</span> <span class="o">+</span> <span class="n">fi</span> <span class="o">*</span> <span class="n">time</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="n">cos_part</span> <span class="o">+=</span> <span class="n">steepness</span> <span class="o">*</span> <span class="n">amplitude</span> <span class="o">*</span> <span class="n">cos</span><span class="p">(</span><span class="n">frequency</span> <span class="o">*</span> <span class="n">li</span> <span class="o">+</span> <span class="n">fi</span> <span class="o">*</span> <span class="n">time</span><span class="p">)</span> <span class="o">*</span> <span class="n">di</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="n">sin_part_normal</span> <span class="o">+=</span> <span class="n">steepness</span> <span class="o">*</span> <span class="n">amplitude</span> <span class="o">*</span> <span class="n">frequency</span> <span class="o">*</span> <span class="n">sin</span><span class="p">(</span><span class="n">frequency</span> <span class="o">*</span> <span class="n">li</span> <span class="o">+</span> <span class="n">fi</span> <span class="o">*</span> <span class="n">time</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="n">cos_part_normal</span> <span class="o">+=</span> <span class="n">di</span> <span class="o">*</span> <span class="n">amplitude</span> <span class="o">*</span> <span class="n">frequency</span> <span class="o">*</span> <span class="n">cos</span><span class="p">(</span><span class="n">frequency</span> <span class="o">*</span> <span class="n">li</span> <span class="o">+</span> <span class="n">fi</span> <span class="o">*</span> <span class="n">time</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="k">vec3</span> <span class="n">di_cross</span> <span class="o">=</span> <span class="n">cross</span><span class="p">(</span><span class="n">di</span><span class="p">,</span> <span class="n">pos_os_norm</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="n">tangent</span> <span class="o">+=</span> <span class="n">di_cross</span> <span class="o">/</span> <span class="n">length</span><span class="p">(</span><span class="n">di_cross</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><p>Phew! That is the core of our shader. It is a direct implementation of the equation I provided above, for both the vertex and the normal. Let&rsquo;s break it down a bit:</p>
+<ol>
+<li>We firstly calculate the amplitude, steepness, frequency, and wave speed (<code>fi</code>) of the wave. The steepness also includes a calculation I mentioned before to prevent the waves from forming a loop by using the <code>smoothstep</code> function.</li>
+<li>We need to calculate the direction vector along which the wave travels (<code>di</code>) and the distance from the wave direction to the vertex position (<code>li</code>). These values are necessary for calculating the sine and cosine parts.</li>
+<li>We calculate the sine and cosine parts, applying it to our <code>inout</code> variables, for both the vertex and the normal calculations.</li>
+<li>Lastly, we calculate the tangent vector.</li>
+</ol>
+<p>Let&rsquo;s update the vertex shader:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-glsl" data-lang="glsl"><span class="line"><span class="cl"><span class="p">...</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">void</span> <span class="n">vertex</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="p">...</span>
+</span></span><span class="line"><span class="cl">	<span class="n">tangent</span> <span class="o">=</span> <span class="n">normalize</span><span class="p">(</span><span class="n">tangent</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="k">vec3</span> <span class="n">surface_level</span> <span class="o">=</span> <span class="n">position_os_norm</span> <span class="o">*</span> <span class="n">radius</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="k">vec3</span> <span class="n">wave_movement</span> <span class="o">=</span> <span class="n">position_os_norm</span> <span class="o">*</span> <span class="n">sin_part</span> <span class="o">+</span> <span class="n">cos_part</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="k">vec3</span> <span class="n">wave_pos</span> <span class="o">=</span> <span class="n">surface_level</span> <span class="o">+</span> <span class="n">wave_movement</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="k">vec3</span> <span class="n">wave_normal</span> <span class="o">=</span> <span class="n">position_os_norm</span> <span class="o">-</span> <span class="n">position_os_norm</span> <span class="o">*</span> <span class="n">sin_part_normal</span> <span class="o">-</span> <span class="n">cos_part_normal</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="n">wave_normal</span> <span class="o">=</span> <span class="n">mix</span><span class="p">(</span><span class="n">position_os_norm</span><span class="p">,</span> <span class="n">wave_normal</span><span class="p">,</span> <span class="n">wave_normal_amount</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="n">wave_normal</span> <span class="o">=</span> <span class="n">normalize</span><span class="p">(</span><span class="n">wave_normal</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="n">VERTEX</span> <span class="o">=</span> <span class="n">wave_pos</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="n">NORMAL</span> <span class="o">=</span> <span class="n">wave_normal</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><p>Now let&rsquo;s setup the uniform with some basic values to see the initial result (feel free to tweak this around):</p>
+<p><img src="/posts/spherical-gerstner-waves/2-3-material-setup.png" alt="Material setup"></p>
+<p>Also update the wave uniforms if it&rsquo;s still showing zeros:</p>
+
+<img src="2-4-wave-material-setup.png"  class="center"  style="width: 40%;"    />
+
+
+<p>Aaand you should have a result now!</p>
+<video controls preload="auto" width="100%"  playsinline class="html-video">
+    <source src="/posts/spherical-gerstner-waves/result-1.mp4" type="video/mp4">
+  <span>Your browser doesn't support embedded videos, but don't worry, you can <a href="/posts/spherical-gerstner-waves/result-1.mp4">download it</a> and watch it with your favorite video player!</span>
+</video>
+<p>You can see the waves being a bit distorted when we increase the frequency scale. This is due to the low resolution of the plane, so be careful when you play around with the frequency scale, and also take the amplitude into consideration as well when you do so.</p>
+<p>Here is the final vertex shader:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-glsl" data-lang="glsl"><span class="line"><span class="cl"><span class="n">shader_type</span> <span class="n">spatial</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">group_uniforms</span> <span class="n">GridSettings</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="k">uniform</span> <span class="k">float</span> <span class="n">y_offset</span> <span class="o">=</span> <span class="mf">100.</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="k">uniform</span> <span class="k">float</span> <span class="n">y_exponent</span> <span class="o">=</span> <span class="mf">4.</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="k">uniform</span> <span class="k">float</span> <span class="n">radius</span> <span class="o">=</span> <span class="mf">1003.4</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="k">uniform</span> <span class="n">mat3</span> <span class="n">basis</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">group_uniforms</span> <span class="n">WaveSettings</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="k">uniform</span> <span class="k">float</span> <span class="n">wave_normal_amount</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="k">uniform</span> <span class="k">float</span> <span class="n">amplitude_scale</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="k">uniform</span> <span class="k">float</span> <span class="n">frequency_scale</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="k">uniform</span> <span class="k">float</span> <span class="n">time_scale</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="k">uniform</span> <span class="k">float</span> <span class="n">steepness_e0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="k">uniform</span> <span class="k">float</span> <span class="n">steepness_e1</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="k">uniform</span> <span class="k">float</span> <span class="n">cpu_time</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="k">uniform</span> <span class="k">sampler2D</span> <span class="n">wave_tex</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// Wave 1</span>
+</span></span><span class="line"><span class="cl"><span class="k">uniform</span> <span class="k">vec4</span> <span class="n">wave_1</span> <span class="o">=</span> <span class="k">vec4</span><span class="p">(</span><span class="mf">1.0</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="k">uniform</span> <span class="k">vec3</span> <span class="n">wave_dir_1</span> <span class="o">=</span> <span class="k">vec3</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// Wave 2</span>
+</span></span><span class="line"><span class="cl"><span class="k">uniform</span> <span class="k">vec4</span> <span class="n">wave_2</span> <span class="o">=</span> <span class="k">vec4</span><span class="p">(</span><span class="mf">1.0</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="k">uniform</span> <span class="k">vec3</span> <span class="n">wave_dir_2</span> <span class="o">=</span> <span class="k">vec3</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">void</span> <span class="n">spherical_gerstner</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">	<span class="k">vec4</span> <span class="n">wave_data</span><span class="p">,</span> <span class="k">vec3</span> <span class="n">wave_dir</span><span class="p">,</span> <span class="k">vec3</span> <span class="n">pos_os_norm</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">	<span class="k">inout</span> <span class="k">float</span> <span class="n">sin_part</span><span class="p">,</span> <span class="k">inout</span> <span class="k">vec3</span> <span class="n">cos_part</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">	<span class="k">inout</span> <span class="k">float</span> <span class="n">sin_part_normal</span><span class="p">,</span> <span class="k">inout</span> <span class="k">vec3</span> <span class="n">cos_part_normal</span><span class="p">,</span> <span class="k">inout</span> <span class="k">vec3</span> <span class="n">tangent</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">	<span class="k">float</span> <span class="n">amp_scale</span><span class="p">,</span> <span class="k">float</span> <span class="n">s_e0</span><span class="p">,</span> <span class="k">float</span> <span class="n">s_e1</span><span class="p">,</span> <span class="k">float</span> <span class="n">freq_scale</span><span class="p">,</span> <span class="k">float</span> <span class="n">t</span><span class="p">,</span> <span class="k">float</span> <span class="n">r</span><span class="p">,</span> <span class="k">float</span> <span class="n">time</span>
+</span></span><span class="line"><span class="cl"><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="k">vec3</span> <span class="n">wave_dir_norm</span> <span class="o">=</span> <span class="n">normalize</span><span class="p">(</span><span class="n">wave_dir</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="k">float</span> <span class="n">amplitude</span> <span class="o">=</span> <span class="n">amp_scale</span> <span class="o">*</span> <span class="n">wave_data</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="k">float</span> <span class="n">steepness</span> <span class="o">=</span> <span class="n">wave_data</span><span class="p">.</span><span class="n">y</span> <span class="o">*</span> <span class="n">smoothstep</span><span class="p">(</span><span class="mf">1.</span> <span class="o">-</span> <span class="n">abs</span><span class="p">(</span><span class="n">dot</span><span class="p">(</span><span class="n">pos_os_norm</span><span class="p">,</span> <span class="n">wave_dir_norm</span><span class="p">)),</span> <span class="n">s_e0</span><span class="p">,</span> <span class="n">s_e1</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="k">float</span> <span class="n">frequency</span> <span class="o">=</span> <span class="n">wave_data</span><span class="p">.</span><span class="n">z</span> <span class="o">*</span> <span class="n">freq_scale</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="c1">// fi == wave speed</span>
+</span></span><span class="line"><span class="cl">	<span class="k">float</span> <span class="n">fi</span> <span class="o">=</span> <span class="n">wave_data</span><span class="p">.</span><span class="n">w</span> <span class="o">*</span> <span class="n">t</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="c1">// di == direction along which the wave travels</span>
+</span></span><span class="line"><span class="cl">	<span class="k">vec3</span> <span class="n">di</span> <span class="o">=</span> <span class="n">cross</span><span class="p">(</span><span class="n">pos_os_norm</span><span class="p">,</span> <span class="n">cross</span><span class="p">(</span><span class="n">pos_os_norm</span> <span class="o">-</span> <span class="n">wave_dir_norm</span><span class="p">,</span> <span class="n">pos_os_norm</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl">	<span class="c1">// li == length to vertex and to wave direction</span>
+</span></span><span class="line"><span class="cl">	<span class="k">float</span> <span class="n">li</span> <span class="o">=</span> <span class="n">acos</span><span class="p">(</span><span class="n">dot</span><span class="p">(</span><span class="n">pos_os_norm</span><span class="p">,</span> <span class="n">wave_dir_norm</span><span class="p">))</span> <span class="o">*</span> <span class="n">r</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="n">sin_part</span> <span class="o">+=</span> <span class="n">amplitude</span> <span class="o">*</span> <span class="n">sin</span><span class="p">(</span><span class="n">frequency</span> <span class="o">*</span> <span class="n">li</span> <span class="o">+</span> <span class="n">fi</span> <span class="o">*</span> <span class="n">time</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="n">cos_part</span> <span class="o">+=</span> <span class="n">steepness</span> <span class="o">*</span> <span class="n">amplitude</span> <span class="o">*</span> <span class="n">cos</span><span class="p">(</span><span class="n">frequency</span> <span class="o">*</span> <span class="n">li</span> <span class="o">+</span> <span class="n">fi</span> <span class="o">*</span> <span class="n">time</span><span class="p">)</span> <span class="o">*</span> <span class="n">di</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="n">sin_part_normal</span> <span class="o">+=</span> <span class="n">steepness</span> <span class="o">*</span> <span class="n">amplitude</span> <span class="o">*</span> <span class="n">frequency</span> <span class="o">*</span> <span class="n">sin</span><span class="p">(</span><span class="n">frequency</span> <span class="o">*</span> <span class="n">li</span> <span class="o">+</span> <span class="n">fi</span> <span class="o">*</span> <span class="n">time</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="n">cos_part_normal</span> <span class="o">+=</span> <span class="n">di</span> <span class="o">*</span> <span class="n">amplitude</span> <span class="o">*</span> <span class="n">frequency</span> <span class="o">*</span> <span class="n">cos</span><span class="p">(</span><span class="n">frequency</span> <span class="o">*</span> <span class="n">li</span> <span class="o">+</span> <span class="n">fi</span> <span class="o">*</span> <span class="n">time</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="k">vec3</span> <span class="n">di_cross</span> <span class="o">=</span> <span class="n">cross</span><span class="p">(</span><span class="n">di</span><span class="p">,</span> <span class="n">pos_os_norm</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="n">tangent</span> <span class="o">+=</span> <span class="n">di_cross</span> <span class="o">/</span> <span class="n">length</span><span class="p">(</span><span class="n">di_cross</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">void</span> <span class="n">vertex</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="k">vec3</span> <span class="n">init_vertex</span> <span class="o">=</span> <span class="n">VERTEX</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="n">init_vertex</span><span class="p">.</span><span class="n">y</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.</span> <span class="o">-</span> <span class="n">pow</span><span class="p">(</span><span class="n">abs</span><span class="p">(</span><span class="n">init_vertex</span><span class="p">.</span><span class="n">x</span><span class="p">),</span> <span class="n">y_exponent</span><span class="p">))</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.</span> <span class="o">-</span> <span class="n">pow</span><span class="p">(</span><span class="n">abs</span><span class="p">(</span><span class="n">init_vertex</span><span class="p">.</span><span class="n">z</span><span class="p">),</span> <span class="n">y_exponent</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl">	<span class="k">vec3</span> <span class="n">rotated_vertex</span> <span class="o">=</span> <span class="n">basis</span> <span class="o">*</span> <span class="n">init_vertex</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="k">vec3</span> <span class="n">rotated_offset</span> <span class="o">=</span> <span class="n">basis</span> <span class="o">*</span> <span class="k">vec3</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="n">y_offset</span><span class="p">,</span> <span class="mf">0.</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="k">vec3</span> <span class="n">grid</span> <span class="o">=</span> <span class="n">normalize</span><span class="p">(</span><span class="n">rotated_offset</span> <span class="o">+</span> <span class="n">rotated_vertex</span><span class="p">)</span> <span class="o">*</span> <span class="n">radius</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="k">vec3</span> <span class="n">position_os</span> <span class="o">=</span> <span class="n">grid</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="k">vec3</span> <span class="n">position_os_norm</span> <span class="o">=</span> <span class="n">normalize</span><span class="p">(</span><span class="n">position_os</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="k">float</span> <span class="n">sin_part</span> <span class="o">=</span> <span class="mf">0.</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="k">vec3</span> <span class="n">cos_part</span> <span class="o">=</span> <span class="k">vec3</span><span class="p">(</span><span class="mf">0.</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="k">float</span> <span class="n">sin_part_normal</span> <span class="o">=</span> <span class="mf">0.</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="k">vec3</span> <span class="n">cos_part_normal</span> <span class="o">=</span> <span class="k">vec3</span><span class="p">(</span><span class="mf">0.</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="k">vec3</span> <span class="n">tangent</span> <span class="o">=</span> <span class="k">vec3</span><span class="p">(</span><span class="mf">0.</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	
+</span></span><span class="line"><span class="cl">	<span class="n">spherical_gerstner</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">		<span class="n">wave_1</span><span class="p">,</span> <span class="n">wave_dir_1</span><span class="p">,</span> <span class="n">position_os_norm</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">		<span class="n">sin_part</span><span class="p">,</span> <span class="n">cos_part</span><span class="p">,</span> <span class="n">sin_part_normal</span><span class="p">,</span> <span class="n">cos_part_normal</span><span class="p">,</span> <span class="n">tangent</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">		<span class="n">amplitude_scale</span><span class="p">,</span> <span class="n">steepness_e0</span><span class="p">,</span> <span class="n">steepness_e1</span><span class="p">,</span> <span class="n">frequency_scale</span><span class="p">,</span> <span class="n">time_scale</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">		<span class="n">radius</span><span class="p">,</span> <span class="n">TIME</span>
+</span></span><span class="line"><span class="cl">	<span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="n">spherical_gerstner</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">		<span class="n">wave_2</span><span class="p">,</span> <span class="n">wave_dir_2</span><span class="p">,</span> <span class="n">position_os_norm</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">		<span class="n">sin_part</span><span class="p">,</span> <span class="n">cos_part</span><span class="p">,</span> <span class="n">sin_part_normal</span><span class="p">,</span> <span class="n">cos_part_normal</span><span class="p">,</span> <span class="n">tangent</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">		<span class="n">amplitude_scale</span><span class="p">,</span> <span class="n">steepness_e0</span><span class="p">,</span> <span class="n">steepness_e1</span><span class="p">,</span> <span class="n">frequency_scale</span><span class="p">,</span> <span class="n">time_scale</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">		<span class="n">radius</span><span class="p">,</span> <span class="n">TIME</span>
+</span></span><span class="line"><span class="cl">	<span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="n">tangent</span> <span class="o">=</span> <span class="n">normalize</span><span class="p">(</span><span class="n">tangent</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="k">vec3</span> <span class="n">surface_level</span> <span class="o">=</span> <span class="n">position_os_norm</span> <span class="o">*</span> <span class="n">radius</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="k">vec3</span> <span class="n">wave_movement</span> <span class="o">=</span> <span class="n">position_os_norm</span> <span class="o">*</span> <span class="n">sin_part</span> <span class="o">+</span> <span class="n">cos_part</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="k">vec3</span> <span class="n">wave_pos</span> <span class="o">=</span> <span class="n">surface_level</span> <span class="o">+</span> <span class="n">wave_movement</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="k">vec3</span> <span class="n">wave_normal</span> <span class="o">=</span> <span class="n">position_os_norm</span> <span class="o">-</span> <span class="n">position_os_norm</span> <span class="o">*</span> <span class="n">sin_part_normal</span> <span class="o">-</span> <span class="n">cos_part_normal</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="n">wave_normal</span> <span class="o">=</span> <span class="n">mix</span><span class="p">(</span><span class="n">position_os_norm</span><span class="p">,</span> <span class="n">wave_normal</span><span class="p">,</span> <span class="n">wave_normal_amount</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="n">wave_normal</span> <span class="o">=</span> <span class="n">normalize</span><span class="p">(</span><span class="n">wave_normal</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="n">VERTEX</span> <span class="o">=</span> <span class="n">wave_pos</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="n">NORMAL</span> <span class="o">=</span> <span class="n">wave_normal</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><p>We can make things easier for us by replacing the <code>wave_data</code> and <code>wave_data_dir</code> variables with a texture instead. That way, we can generate wave data and direction from a GDScript node and then feed it to a texture for the shader to read.</p>
+<hr>
+<h1 id="wave-data-and-direction-using-texture">Wave Data and Direction using Texture<a href="#wave-data-and-direction-using-texture" class="hanchor" ariaLabel="Anchor">#</a> </h1>
 
       </div></div>
 
@@ -261,7 +511,6 @@ I used 20 waves in the video, in which you can play around with the plane size a
 
   
     
-
   
 </article>
 

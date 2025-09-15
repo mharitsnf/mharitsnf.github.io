@@ -13,7 +13,7 @@
       <link>//localhost:1313/posts/spherical-gerstner-waves/</link>
       <pubDate>Wed, 03 Sep 2025 18:09:51 +0200</pubDate>
       <guid>//localhost:1313/posts/spherical-gerstner-waves/</guid>
-      <description>Vertex shader implementation for real-time ocean simulation in planets in Godot Engine 4.</description>
+      <description>Ocean simulation vertex shader breakdown for simulating planets in Godot 4.</description>
     </item>
   </channel>
 </rss>

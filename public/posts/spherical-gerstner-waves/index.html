@@ -6,7 +6,7 @@
   
   <meta http-equiv="content-type" content="text/html; charset=utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Ocean simulation vertex shader breakdown for simulating planets in Godot 4." />
+<meta name="description" content="Ocean waves simulation on spherical surfaces in Godot Engine 4" />
 <meta name="keywords" content="" />
 
   <meta name="robots" content="noodp" />
@@ -78,7 +78,7 @@
 <meta property="og:locale" content="en" />
 <meta property="og:type" content="article" />
 <meta property="og:title" content="Spherical Gerstner Wave: Vertex Shader">
-<meta property="og:description" content="Ocean simulation vertex shader breakdown for simulating planets in Godot 4." />
+<meta property="og:description" content="Ocean waves simulation on spherical surfaces in Godot Engine 4" />
 <meta property="og:url" content="//localhost:1313/posts/spherical-gerstner-waves/" />
 <meta property="og:site_name" content="Harits Nur Fauzan" />
 
@@ -159,7 +159,7 @@
   <h1 class="post-title">
     <a href="//localhost:1313/posts/spherical-gerstner-waves/">Spherical Gerstner Wave: Vertex Shader</a>
   </h1>
-  <div class="post-meta"><time class="post-date">2025-09-03</time><span class="post-reading-time">13 min read (2684 words)</span></div>
+  <div class="post-meta"><time class="post-date">2025-09-03</time><span class="post-reading-time">17 min read (3535 words)</span></div>
 
   
     <span class="post-tags">
@@ -178,19 +178,42 @@
 
 
   
+    <div class="table-of-contents">
+      <h2>
+        Table of Contents
+      </h2>
+      <nav id="TableOfContents">
+  <ul>
+    <li><a href="#what-is-this">What is This?</a></li>
+    <li><a href="#setting-up-the-scene">Setting Up the Scene</a></li>
+    <li><a href="#projection-calculation">Projection Calculation</a></li>
+    <li><a href="#gerstner-wave-calculation">Gerstner Wave Calculation</a></li>
+    <li><a href="#wave-data-and-direction-using-texture">Wave Data and Direction using Texture</a>
+      <ul>
+        <li><a href="#texture-generator-setup">Texture Generator Setup</a></li>
+        <li><a href="#shader-updates">Shader Updates</a></li>
+      </ul>
+    </li>
+    <li><a href="#uh-my-ocean-is-white">Uh&hellip; My Ocean is White?</a></li>
+    <li><a href="#yay-conclusion-whats-next">Yay! Conclusion! What&rsquo;s Next?</a></li>
+  </ul>
+</nav>
+    </div>
+  
 
   <div class="post-content"><div>
-        <hr>
-<p>I spent the past few days trying to figure out how to properly simulate ocean waves for spherical levels in video games. I managed to do it for flat surfaces thanks to Catlike Coding&rsquo;s awesome walkthrough of the Gerstner Wave, but trying to project a flat plane onto a sphere and making the waves work like before is a different problem, one that I could not solve on my own.</p>
-<p>So I thought there has to be someone smarter than me who had solved this issue before, knowing that we&rsquo;ve had games that features planets with oceans, right? (Looking at you, Giant&rsquo;s Deep in Outer Wilds.) And well, I stumbled upon a paper called <a href="https://cescg.org/cescg_submission/real-time-rendering-of-procedurally-generated-planets/"><em>Real-Time Rendering of Procedurally Generated Planets</em></a>, written by Florian Michelic and Michael Kenzel which explains how to deal with this exact problem! Usually I&rsquo;d steer clear from scientific papers because they can be rather difficult to comprehend, but honestly it&rsquo;s hard to do that when you&rsquo;re working on computer graphics stuff. So, driven by my curiosity, I managed to implement their method in my game engine of choice, namely Godot Engine 4, and actually had a pretty good time reading the paper as I think it was really well written!</p>
+        <h2 id="what-is-this">What is This?<a href="#what-is-this" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<p>I spent a few days trying to figure out how to properly simulate ocean waves for spherical levels in video games. I managed to do it for flat surfaces thanks to <!-- raw HTML omitted -->Catlike Coding&rsquo;s awesome walkthrough of the Gerstner Wave <sup id="fnref:1"><a href="#fn:1" class="footnote-ref" role="doc-noteref">1</a></sup><!-- raw HTML omitted -->, but trying to project a flat plane onto a sphere and making the waves work like before is a different problem, one that I could not solve on my own.</p>
+<p>So I thought there has to be someone smarter than me who had solved this issue before, knowing that we&rsquo;ve had games that features planets with oceans, right? (Looking at you, Giant&rsquo;s Deep in Outer Wilds.) And well, I stumbled upon a paper called <!-- raw HTML omitted --><em>Real-Time Rendering of Procedurally Generated Planets</em> <sup id="fnref:2"><a href="#fn:2" class="footnote-ref" role="doc-noteref">2</a></sup><!-- raw HTML omitted -->, written by Florian Michelic and Michael Kenzel which explains how to deal with this exact problem! Usually I&rsquo;d steer clear from scientific papers because they can be rather difficult to comprehend, but honestly it&rsquo;s hard to do that when you&rsquo;re working on computer graphics stuff. So, driven by my curiosity, I managed to implement their method in my game engine of choice, namely Godot Engine 4, and actually had a pretty good time reading the paper as I think it was really well written! I also received great help from <!-- raw HTML omitted -->kulesz&rsquo;s PlanetaryWater repository <sup id="fnref:3"><a href="#fn:3" class="footnote-ref" role="doc-noteref">3</a></sup><!-- raw HTML omitted -->, which is also an implementation of the method, but in Unity.</p>
 <p>I&rsquo;m quite satisfied with the result (you can see in the video below); the method they came up with produces waves that are distortion-free, meaning it will look good regardless of where you are, whether you&rsquo;re looking from a certain point on the planet or from the space, and it works wonders with large amount of waves (more detailed) or small amount of waves (more simple, which is what I&rsquo;m after.)
 <video controls preload="auto" width="100%"  playsinline class="html-video">
     <source src="/posts/spherical-gerstner-waves/overview.mp4" type="video/mp4">
   <span>Your browser doesn't support embedded videos, but don't worry, you can <a href="/posts/spherical-gerstner-waves/overview.mp4">download it</a> and watch it with your favorite video player!</span>
 </video>
 I used 20 waves in the video, in which you can play around with the plane size and the radius. You can also tweak the amplitude, frequency, and time scale of the waves. It is also possible to change the orientation of the plane using the basis uniform.</p>
+<p>The repository of this project can be found <a href="https://github.com/mharitsnf/godot-spherical-gerstner-waves">here</a>.</p>
 <hr>
-<h1 id="setting-up-the-scene">Setting Up the Scene<a href="#setting-up-the-scene" class="hanchor" ariaLabel="Anchor">#</a> </h1>
+<h2 id="setting-up-the-scene">Setting Up the Scene<a href="#setting-up-the-scene" class="hanchor" ariaLabel="Anchor">#</a> </h2>
 <p>Let&rsquo;s get started! As I mentioned, I&rsquo;m using Godot Engine 4, but you should be able to replicate this in any other engine. At the end of this article, you&rsquo;ll have a spherical gerstner wave implementation in the vertex shader.</p>
 <p>Note that I&rsquo;m not doing the frament shader for now mainly because I&rsquo;m lazy, and also I haven&rsquo;t got a good art direction for my ocean. I&rsquo;ll come back to that in a future article.</p>
 <p>Firstly, let&rsquo;s create a <code>MeshInstance3D</code> node that would be our main visual, which will hold our shader material as well. We want a PlaneMesh for the mesh, and set the size to 2 on both the width and height. This way we can ensure that the bottom left corner of the plane will fall on the coordinates (-1, -1), while the top right corner of the plane will fall on the coordinate (1, 1). This is necessary for the grid projection calculation that we will be doing in the next section.</p>
@@ -199,7 +222,7 @@ I used 20 waves in the video, in which you can play around with the plane size a
 <p>Now, let&rsquo;s create a spatial shader file (I call mine <code>ocean.shader</code>), and save it somewhere in the project (I put mine in the root of the project). After that, let&rsquo;s also create a material based on that shader called <code>m_ocean.tres</code>, and then assign it to the plane:</p>
 <p><img src="/posts/spherical-gerstner-waves/material-setup.png" alt="Test"></p>
 <hr>
-<h1 id="projection-calculation">Projection Calculation<a href="#projection-calculation" class="hanchor" ariaLabel="Anchor">#</a> </h1>
+<h2 id="projection-calculation">Projection Calculation<a href="#projection-calculation" class="hanchor" ariaLabel="Anchor">#</a> </h2>
 <p>Let&rsquo;s start with the basic projection method. The basic projection method (that is not distortion-free) involves raising the plane (increasing the Y position of the plane), normalizing the vertices so that we would project the vertices onto a unit sphere, and then multiplying that value with our desired planet radius. Let&rsquo;s add new uniform variables in the shader called <code>y_offset</code> and <code>radius</code>, and then do the calculation:</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-glsl" data-lang="glsl"><span class="line"><span class="cl"><span class="n">shader_type</span> <span class="n">spatial</span><span class="p">;</span>
 </span></span><span class="line"><span class="cl">
@@ -245,12 +268,12 @@ I used 20 waves in the video, in which you can play around with the plane size a
 </span></span><span class="line"><span class="cl">    <span class="k">vec3</span> <span class="n">grid</span> <span class="o">=</span> <span class="n">normalize</span><span class="p">(</span><span class="n">rotated_offset</span> <span class="o">+</span> <span class="n">rotated_vertex</span><span class="p">)</span> <span class="o">*</span> <span class="n">radius</span><span class="p">;</span>
 </span></span><span class="line"><span class="cl">    <span class="n">VERTEX</span> <span class="o">=</span> <span class="n">grid</span><span class="p">;</span>
 </span></span><span class="line"><span class="cl"><span class="p">...</span>
-</span></span></code></pre></div><p>Now, we can use update this <code>basis</code> uniform when we want to rotate the plane. For example, this is the result when I change the basis to <code>(0.0, 1.0, 0.0), (-1.0, 0.0, 0.0), (0.0, 0.0, 1.0)</code>, which essentially making the plane to face right:</p>
+</span></span></code></pre></div><p>Now, we can use update this <code>basis</code> uniform when we want to rotate the plane. For example, this is the result when I change the basis to <code>(0.0, 1.0, 0.0), (-1.0, 0.0, 0.0), (0.0, 0.0, 1.0)</code>, which essentially making the plane to face right instead of up:</p>
 <p><img src="/posts/spherical-gerstner-waves/1-4-rotated.png" alt="No distortion projection"></p>
 <p>By playing around with the <code>y_offset</code> and updating the <code>basis</code> accordingly, we can create the effect of having the planet covered in water when we look at it from the space by setting the <code>y_offset</code> to something close to <code>0.0</code>, whereas when we get closer to the planet surface, we can increase the value to something like <code>1.5</code> so that the ocean plane would shrink, only to cover the necessary area around the camera.</p>
 <p>Cool! Now let&rsquo;s continue to the Gerstner wave calculation.</p>
 <hr>
-<h1 id="gerstner-wave-calculation">Gerstner Wave Calculation<a href="#gerstner-wave-calculation" class="hanchor" ariaLabel="Anchor">#</a> </h1>
+<h2 id="gerstner-wave-calculation">Gerstner Wave Calculation<a href="#gerstner-wave-calculation" class="hanchor" ariaLabel="Anchor">#</a> </h2>
 <p>Firstly, we need to set up all the necessary variables for the Gerstner function first. Let&rsquo;s add a few uniform variables and those variables in the vertex shader:</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-glsl" data-lang="glsl"><span class="line"><span class="cl"><span class="k">void</span> <span class="n">vertex</span><span class="p">()</span> <span class="p">{</span>
 </span></span><span class="line"><span class="cl">	<span class="p">...</span>
@@ -275,7 +298,7 @@ I used 20 waves in the video, in which you can play around with the plane size a
 </span></span><span class="line"><span class="cl"><span class="p">)</span> <span class="p">{</span>
 </span></span><span class="line"><span class="cl">
 </span></span><span class="line"><span class="cl"><span class="p">}</span>
-</span></span></code></pre></div><p>Heh, I&rsquo;m sure there are better ways to set this up, but I put lots of variables in this function so that I can move this function to a separate include file. But anyways, let&rsquo;s breakdown the variables here:</p>
+</span></span></code></pre></div><p>Heh, I&rsquo;m sure there are better ways to set this up, but I put lots of variables in this function so that I can move this function to a separate include file later. But anyways, let&rsquo;s breakdown the variables here:</p>
 <ol>
 <li><code>vec4 wave_data</code> contains four <code>float</code> values, which represents the amplitude, steepness, frequency, and wave speed;</li>
 <li><code>vec3 wave_dir</code> describes the wave direction (or more precisely where does this wave starts from);</li>
@@ -397,7 +420,7 @@ I used 20 waves in the video, in which you can play around with the plane size a
     <source src="/posts/spherical-gerstner-waves/result-1.mp4" type="video/mp4">
   <span>Your browser doesn't support embedded videos, but don't worry, you can <a href="/posts/spherical-gerstner-waves/result-1.mp4">download it</a> and watch it with your favorite video player!</span>
 </video>
-<p>You can see the waves being a bit distorted when we increase the frequency scale. This is due to the low resolution of the plane, so be careful when you play around with the frequency scale, and also take the amplitude into consideration as well when you do so.</p>
+<p>You can see the waves being a bit distorted when we increase the frequency scale. This is due to the low resolution of the plane, so take that into account when you play around with the frequency scale and the amplitude scale.</p>
 <p>Here is the final vertex shader:</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-glsl" data-lang="glsl"><span class="line"><span class="cl"><span class="n">shader_type</span> <span class="n">spatial</span><span class="p">;</span>
 </span></span><span class="line"><span class="cl">
@@ -415,7 +438,6 @@ I used 20 waves in the video, in which you can play around with the plane size a
 </span></span><span class="line"><span class="cl"><span class="k">uniform</span> <span class="k">float</span> <span class="n">steepness_e0</span><span class="p">;</span>
 </span></span><span class="line"><span class="cl"><span class="k">uniform</span> <span class="k">float</span> <span class="n">steepness_e1</span><span class="p">;</span>
 </span></span><span class="line"><span class="cl"><span class="k">uniform</span> <span class="k">float</span> <span class="n">cpu_time</span><span class="p">;</span>
-</span></span><span class="line"><span class="cl"><span class="k">uniform</span> <span class="k">sampler2D</span> <span class="n">wave_tex</span><span class="p">;</span>
 </span></span><span class="line"><span class="cl">
 </span></span><span class="line"><span class="cl"><span class="c1">// Wave 1</span>
 </span></span><span class="line"><span class="cl"><span class="k">uniform</span> <span class="k">vec4</span> <span class="n">wave_1</span> <span class="o">=</span> <span class="k">vec4</span><span class="p">(</span><span class="mf">1.0</span><span class="p">);</span>
@@ -500,7 +522,133 @@ I used 20 waves in the video, in which you can play around with the plane size a
 </span></span><span class="line"><span class="cl"><span class="p">}</span>
 </span></span></code></pre></div><p>We can make things easier for us by replacing the <code>wave_data</code> and <code>wave_data_dir</code> variables with a texture instead. That way, we can generate wave data and direction from a GDScript node and then feed it to a texture for the shader to read.</p>
 <hr>
-<h1 id="wave-data-and-direction-using-texture">Wave Data and Direction using Texture<a href="#wave-data-and-direction-using-texture" class="hanchor" ariaLabel="Anchor">#</a> </h1>
+<h2 id="wave-data-and-direction-using-texture">Wave Data and Direction using Texture<a href="#wave-data-and-direction-using-texture" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<h3 id="texture-generator-setup">Texture Generator Setup<a href="#texture-generator-setup" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<p>The idea is to have the all the wave information being stored into a single texture. So to do that, let&rsquo;s setup a folder called <code>gerstner_waves</code> and a new GDScript class called <code>gerstner_waves_generator.gd</code>, which will be a short one:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-gdscript" data-lang="gdscript"><span class="line"><span class="cl"><span class="nd">@tool</span>
+</span></span><span class="line"><span class="cl"><span class="kd">class_name</span> <span class="nc">GersnterWaveGenerator</span> <span class="kd">extends</span> <span class="nc">Node</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="nd">@export</span><span class="n">_tool_button</span><span class="p">(</span><span class="s2">&#34;Generate&#34;</span><span class="p">,</span> <span class="s2">&#34;Callable&#34;</span><span class="p">)</span> <span class="kd">var</span> <span class="n">generate_action</span><span class="p">:</span> <span class="nc">Callable</span> <span class="o">=</span> <span class="n">_generate_wave_texture</span>
+</span></span><span class="line"><span class="cl"><span class="nd">@export</span> <span class="kd">var</span> <span class="n">num_of_waves</span><span class="p">:</span> <span class="kt">int</span> <span class="o">=</span> <span class="mi">30</span>
+</span></span><span class="line"><span class="cl"><span class="nd">@export</span> <span class="kd">var</span> <span class="n">filename</span><span class="p">:</span> <span class="nc">String</span>
+</span></span><span class="line"><span class="cl">  
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="nf">_generate_wave_texture</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kt">void</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">	<span class="kd">var</span> <span class="n">img</span><span class="p">:</span> <span class="nc">Image</span> <span class="o">=</span> <span class="nc">Image</span><span class="o">.</span><span class="nf">create</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">num_of_waves</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="nc">Image</span><span class="o">.</span><span class="n">FORMAT_RGBAF</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">	<span class="nb">randomize</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">	<span class="k">for</span> <span class="n">i</span><span class="p">:</span> <span class="kt">int</span> <span class="ow">in</span> <span class="n">num_of_waves</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">		<span class="kd">var</span> <span class="n">data</span><span class="p">:</span> <span class="nc">Color</span> <span class="o">=</span> <span class="nc">Color</span><span class="p">(</span><span class="nb">randf</span><span class="p">(),</span> <span class="nb">randf</span><span class="p">(),</span> <span class="nb">randf</span><span class="p">(),</span> <span class="nb">randf</span><span class="p">())</span>
+</span></span><span class="line"><span class="cl">		<span class="kd">var</span> <span class="n">direction</span><span class="p">:</span> <span class="nc">Color</span> <span class="o">=</span> <span class="nc">Color</span><span class="p">(</span><span class="nb">randf</span><span class="p">(),</span> <span class="nb">randf</span><span class="p">(),</span> <span class="nb">randf</span><span class="p">(),</span> <span class="mf">1.0</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">		<span class="n">img</span><span class="o">.</span><span class="nf">set_pixel</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">		<span class="n">img</span><span class="o">.</span><span class="nf">set_pixel</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">direction</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="n">img</span><span class="o">.</span><span class="nf">save_png</span><span class="p">(</span><span class="s2">&#34;res://gerstner_waves/</span><span class="si">%s</span><span class="s2">.png&#34;</span> <span class="o">%</span> <span class="n">filename</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">	<span class="nb">print</span><span class="p">(</span><span class="s2">&#34;Gerstner data texture generated! (res://gerstner_waves/</span><span class="si">%s</span><span class="s2">.png)&#34;</span> <span class="o">%</span> <span class="n">filename</span><span class="p">)</span>
+</span></span></code></pre></div><p>What this script does is basically just creating an image file where each row represents the wave. The first column represents the wave data (a variable with type vector 4, if you remember), and the second column represents the wave direction (vector 3).</p>
+<p>Add the script onto the scene and you can see some setup in the inspector window:</p>
+<p><img src="/posts/spherical-gerstner-waves/3-1-gerstner-wave-generator.png" alt="Gerstner waves setup"></p>
+<p>Determine how many waves you want to have in your shader, and also include the filename (without the extension). When you click generate, a confirmation will be shown in the output console, and the texture will be saved in the <code>gerstner_waves</code> folder that we created before.</p>
+<p>If you can&rsquo;t see it in the Godot filesystem, you probably need to open the folder using your files explorer first (I&rsquo;m not sure why, Godot doesn&rsquo;t seem to immediately recognize the file.) You should now see the texture:</p>
+<p><img src="/posts/spherical-gerstner-waves/3-2-gerstner-texture.png" alt="Gerstner waves setup"></p>
+<p>And we also need to make sure that the texture is not compressed. Double click on the texture, and then head to the import window and make sure that the compress mode is set to be lossless, and then click on re-import:</p>
+<p><img src="/posts/spherical-gerstner-waves/3-3-reimport.png" alt="Gerstner waves setup"></p>
+<p>Now the texture is ready to be fed into the material, but we need to setup the shader first. So let&rsquo;s do that next!</p>
+<h3 id="shader-updates">Shader Updates<a href="#shader-updates" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<p>We also need to update the shader file:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-glsl" data-lang="glsl"><span class="line"><span class="cl"><span class="n">shader_type</span> <span class="n">spatial</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="p">...</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// We can remove these lines:</span>
+</span></span><span class="line"><span class="cl"><span class="c1">// Wave 1</span>
+</span></span><span class="line"><span class="cl"><span class="c1">// uniform vec4 wave_1 = vec4(1.0);</span>
+</span></span><span class="line"><span class="cl"><span class="c1">// uniform vec3 wave_dir_1 = vec3(0., 1., 0.);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// Wave 2</span>
+</span></span><span class="line"><span class="cl"><span class="c1">// uniform vec4 wave_2 = vec4(1.0);</span>
+</span></span><span class="line"><span class="cl"><span class="c1">// uniform vec3 wave_dir_2 = vec3(0., 1., 0.);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// And replace it with this one:</span>
+</span></span><span class="line"><span class="cl"><span class="k">uniform</span> <span class="k">sampler2D</span> <span class="n">wave_tex</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="p">...</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">void</span> <span class="n">vertex</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="p">...</span>
+</span></span><span class="line"><span class="cl">	
+</span></span><span class="line"><span class="cl">	<span class="c1">// Also replace these two function calls:</span>
+</span></span><span class="line"><span class="cl">	<span class="c1">// spherical_gerstner(</span>
+</span></span><span class="line"><span class="cl">	<span class="c1">//	wave_1, wave_dir_1, position_os_norm,</span>
+</span></span><span class="line"><span class="cl">	<span class="c1">//	sin_part, cos_part, sin_part_normal, cos_part_normal, tangent,</span>
+</span></span><span class="line"><span class="cl">	<span class="c1">//	amplitude_scale, steepness_e0, steepness_e1, frequency_scale, time_scale,</span>
+</span></span><span class="line"><span class="cl">	<span class="c1">//	radius, TIME</span>
+</span></span><span class="line"><span class="cl">	<span class="c1">// );</span>
+</span></span><span class="line"><span class="cl">	<span class="c1">// spherical_gerstner(</span>
+</span></span><span class="line"><span class="cl">	<span class="c1">//	wave_2, wave_dir_2, position_os_norm,</span>
+</span></span><span class="line"><span class="cl">	<span class="c1">//	sin_part, cos_part, sin_part_normal, cos_part_normal, tangent,</span>
+</span></span><span class="line"><span class="cl">	<span class="c1">//	amplitude_scale, steepness_e0, steepness_e1, frequency_scale, time_scale,</span>
+</span></span><span class="line"><span class="cl">	<span class="c1">//	radius, TIME</span>
+</span></span><span class="line"><span class="cl">	<span class="c1">// );</span>
+</span></span><span class="line"><span class="cl">	
+</span></span><span class="line"><span class="cl">	<span class="c1">// With this one instead:</span>
+</span></span><span class="line"><span class="cl">	<span class="k">int</span> <span class="n">wave_data_amount</span> <span class="o">=</span> <span class="n">textureSize</span><span class="p">(</span><span class="n">wave_tex</span><span class="p">,</span> <span class="mo">0</span><span class="p">).</span><span class="n">y</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="k">for</span> <span class="p">(</span><span class="k">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mo">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">wave_data_amount</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="k">vec4</span> <span class="n">data</span> <span class="o">=</span> <span class="n">texelFetch</span><span class="p">(</span><span class="n">wave_tex</span><span class="p">,</span> <span class="k">ivec2</span><span class="p">(</span><span class="mo">0</span><span class="p">,</span> <span class="n">i</span><span class="p">),</span> <span class="mo">0</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">		<span class="k">vec3</span> <span class="n">dir</span> <span class="o">=</span> <span class="n">texelFetch</span><span class="p">(</span><span class="n">wave_tex</span><span class="p">,</span> <span class="k">ivec2</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">i</span><span class="p">),</span> <span class="mo">0</span><span class="p">).</span><span class="n">rgb</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">		<span class="n">spherical_gerstner</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">			<span class="n">data</span><span class="p">,</span> <span class="n">dir</span><span class="p">,</span> <span class="n">position_os_norm</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">			<span class="n">sin_part</span><span class="p">,</span> <span class="n">cos_part</span><span class="p">,</span> <span class="n">sin_part_normal</span><span class="p">,</span> <span class="n">cos_part_normal</span><span class="p">,</span> <span class="n">tangent</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">			<span class="n">amplitude_scale</span><span class="p">,</span> <span class="n">steepness_e0</span><span class="p">,</span> <span class="n">steepness_e1</span><span class="p">,</span> <span class="n">frequency_scale</span><span class="p">,</span> <span class="n">time_scale</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">			<span class="n">radius</span><span class="p">,</span> <span class="n">TIME</span>
+</span></span><span class="line"><span class="cl">		<span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="p">...</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><p>In the new vertex function, we loop through every row of the texture, fetching the first <code>y</code> index (first column) to get the wave data, and also fetching the second <code>y</code> index (second column) to get the wave direction. Once we fetched them, we feed it into the <code>spherical_gerstner</code> function again.</p>
+<p>Now we&rsquo;re ready to feed the texture into the material. You just need to drag and drop the texture into the <code>wave_tex</code> slot in the material:</p>
+<p><img src="/posts/spherical-gerstner-waves/3-4-inserting-texture.png" alt="Gerstner waves setup"></p>
+<p>And now you should be able to see the end result!</p>
+<video controls preload="auto" width="100%"  playsinline class="html-video">
+    <source src="/posts/spherical-gerstner-waves/result-2.mp4" type="video/mp4">
+  <span>Your browser doesn't support embedded videos, but don't worry, you can <a href="/posts/spherical-gerstner-waves/result-2.mp4">download it</a> and watch it with your favorite video player!</span>
+</video>
+<h2 id="uh-my-ocean-is-white">Uh&hellip; My Ocean is White?<a href="#uh-my-ocean-is-white" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<p>Yeah I know, I know, we haven&rsquo;t touched the fragment shader yet! I don&rsquo;t want to cover the fragment shader that much right now because it&rsquo;s not that important for now (<em>honest reason</em>: I haven&rsquo;t figured out how the UV would work) but basically I just replaced the <code>ALBEDO</code> variable with a uniform value:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-glsl" data-lang="glsl"><span class="line"><span class="cl"><span class="n">shader_type</span> <span class="n">spatial</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="p">...</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">group_uniforms</span> <span class="n">VisualSettings</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="k">uniform</span> <span class="k">vec4</span> <span class="n">main_color</span> <span class="o">:</span> <span class="n">source_color</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="p">...</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">void</span> <span class="n">vertex</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="p">...</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">void</span> <span class="n">fragment</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="n">ALBEDO</span> <span class="o">=</span> <span class="n">main_color</span><span class="p">.</span><span class="n">rgb</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><p>Now you can change the <code>main_color</code> value and your plane will no longer be white colored anymore!</p>
+<h2 id="yay-conclusion-whats-next">Yay! Conclusion! What&rsquo;s Next?<a href="#yay-conclusion-whats-next" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<p>Cool! Now we have a plane that is simulating the ocean waves using the Gerstner waves formula, that is wrapping around a sphere and is distortion-free.</p>
+<p>There are lots of things that still needs to be done, including utilizing the basis to rotate the plane and adjusting the y_offset value, syncing with the game objects, and also properly coloring the ocean plane, when that becomes important (<em>read</em>: when I solve UV calculation.) But they will come in due time!</p>
+<p>For now, enjoy the wiggly plane! Hope it&rsquo;s been useful!</p>
+<div class="footnotes" role="doc-endnotes">
+<hr>
+<ol>
+<li id="fn:1">
+<p>Catlike Coding: Waves. (<a href="https://catlikecoding.com/unity/tutorials/flow/waves/">https://catlikecoding.com/unity/tutorials/flow/waves/</a>)&#160;<a href="#fnref:1" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+<li id="fn:2">
+<p>Florian Michelic and Michael Kenzel. Real-Time Rendering of Procuderally Generated Planets. TU Graz, 2018. (<a href="https://cescg.org/cescg_submission/real-time-rendering-of-procedurally-generated-planets/">https://cescg.org/cescg_submission/real-time-rendering-of-procedurally-generated-planets/</a>)&#160;<a href="#fnref:2" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+<li id="fn:3">
+<p>kulesz. Planetary Water. (<a href="https://github.com/kulesz/PlanetaryWater/">https://github.com/kulesz/PlanetaryWater/</a>)&#160;<a href="#fnref:3" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+</ol>
+</div>
 
       </div></div>
 

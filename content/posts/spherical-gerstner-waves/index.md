@@ -1,26 +1,27 @@
 +++
 title = "Spherical Gerstner Wave: Vertex Shader"
 date = 2025-09-03T18:09:51+02:00
-summary = "Ocean simulation vertex shader breakdown for simulating planets in Godot 4."
+summary = "Ocean waves simulation on spherical surfaces in Godot Engine 4"
 readingTime = true
 tags = ["godot", "computer-graphics"]
-draft = true
+toc = true
 +++
 
----
+## What is This?
 
+I spent a few days trying to figure out how to properly simulate ocean waves for spherical levels in video games. I managed to do it for flat surfaces thanks to <cite>Catlike Coding's awesome walkthrough of the Gerstner Wave [^1]</cite>, but trying to project a flat plane onto a sphere and making the waves work like before is a different problem, one that I could not solve on my own.
 
-I spent the past few days trying to figure out how to properly simulate ocean waves for spherical levels in video games. I managed to do it for flat surfaces thanks to Catlike Coding's awesome walkthrough of the Gerstner Wave, but trying to project a flat plane onto a sphere and making the waves work like before is a different problem, one that I could not solve on my own.
-
-So I thought there has to be someone smarter than me who had solved this issue before, knowing that we've had games that features planets with oceans, right? (Looking at you, Giant's Deep in Outer Wilds.) And well, I stumbled upon a paper called [_Real-Time Rendering of Procedurally Generated Planets_](https://cescg.org/cescg_submission/real-time-rendering-of-procedurally-generated-planets/), written by Florian Michelic and Michael Kenzel which explains how to deal with this exact problem! Usually I'd steer clear from scientific papers because they can be rather difficult to comprehend, but honestly it's hard to do that when you're working on computer graphics stuff. So, driven by my curiosity, I managed to implement their method in my game engine of choice, namely Godot Engine 4, and actually had a pretty good time reading the paper as I think it was really well written!
+So I thought there has to be someone smarter than me who had solved this issue before, knowing that we've had games that features planets with oceans, right? (Looking at you, Giant's Deep in Outer Wilds.) And well, I stumbled upon a paper called <cite>_Real-Time Rendering of Procedurally Generated Planets_ [^2]</cite>, written by Florian Michelic and Michael Kenzel which explains how to deal with this exact problem! Usually I'd steer clear from scientific papers because they can be rather difficult to comprehend, but honestly it's hard to do that when you're working on computer graphics stuff. So, driven by my curiosity, I managed to implement their method in my game engine of choice, namely Godot Engine 4, and actually had a pretty good time reading the paper as I think it was really well written! I also received great help from <cite>kulesz's PlanetaryWater repository [^3]</cite>, which is also an implementation of the method, but in Unity.
 
 I'm quite satisfied with the result (you can see in the video below); the method they came up with produces waves that are distortion-free, meaning it will look good regardless of where you are, whether you're looking from a certain point on the planet or from the space, and it works wonders with large amount of waves (more detailed) or small amount of waves (more simple, which is what I'm after.)
 {{< video src="overview" >}}
 I used 20 waves in the video, in which you can play around with the plane size and the radius. You can also tweak the amplitude, frequency, and time scale of the waves. It is also possible to change the orientation of the plane using the basis uniform.
 
+The repository of this project can be found [here](https://github.com/mharitsnf/godot-spherical-gerstner-waves).
+
 ---
 
-# Setting Up the Scene
+## Setting Up the Scene
 Let's get started! As I mentioned, I'm using Godot Engine 4, but you should be able to replicate this in any other engine. At the end of this article, you'll have a spherical gerstner wave implementation in the vertex shader.
 
 Note that I'm not doing the frament shader for now mainly because I'm lazy, and also I haven't got a good art direction for my ocean. I'll come back to that in a future article.
@@ -37,7 +38,7 @@ Now, let's create a spatial shader file (I call mine `ocean.shader`), and save i
 
 ---
 
-# Projection Calculation
+## Projection Calculation
 
 Let's start with the basic projection method. The basic projection method (that is not distortion-free) involves raising the plane (increasing the Y position of the plane), normalizing the vertices so that we would project the vertices onto a unit sphere, and then multiplying that value with our desired planet radius. Let's add new uniform variables in the shader called `y_offset` and `radius`, and then do the calculation:
 
@@ -107,7 +108,7 @@ And apply the `basis` to the projection calculation:
     VERTEX = grid;
 ...
 ```
-Now, we can use update this `basis` uniform when we want to rotate the plane. For example, this is the result when I change the basis to `(0.0, 1.0, 0.0), (-1.0, 0.0, 0.0), (0.0, 0.0, 1.0)`, which essentially making the plane to face right:
+Now, we can use update this `basis` uniform when we want to rotate the plane. For example, this is the result when I change the basis to `(0.0, 1.0, 0.0), (-1.0, 0.0, 0.0), (0.0, 0.0, 1.0)`, which essentially making the plane to face right instead of up:
 
 ![No distortion projection](1-4-rotated.png)
 
@@ -116,7 +117,7 @@ By playing around with the `y_offset` and updating the `basis` accordingly, we c
 Cool! Now let's continue to the Gerstner wave calculation.
 
 ---
-# Gerstner Wave Calculation
+## Gerstner Wave Calculation
 
 Firstly, we need to set up all the necessary variables for the Gerstner function first. Let's add a few uniform variables and those variables in the vertex shader:
 
@@ -151,7 +152,7 @@ void spherical_gerstner(
 }
 ```
 
-Heh, I'm sure there are better ways to set this up, but I put lots of variables in this function so that I can move this function to a separate include file. But anyways, let's breakdown the variables here:
+Heh, I'm sure there are better ways to set this up, but I put lots of variables in this function so that I can move this function to a separate include file later. But anyways, let's breakdown the variables here:
 
 1. `vec4 wave_data` contains four `float` values, which represents the amplitude, steepness, frequency, and wave speed;
 2. `vec3 wave_dir` describes the wave direction (or more precisely where does this wave starts from);
@@ -287,7 +288,7 @@ Aaand you should have a result now!
 
 {{< video src="result-1" >}}
 
-You can see the waves being a bit distorted when we increase the frequency scale. This is due to the low resolution of the plane, so be careful when you play around with the frequency scale, and also take the amplitude into consideration as well when you do so.
+You can see the waves being a bit distorted when we increase the frequency scale. This is due to the low resolution of the plane, so take that into account when you play around with the frequency scale and the amplitude scale.
 
 Here is the final vertex shader:
 
@@ -308,7 +309,6 @@ uniform float time_scale;
 uniform float steepness_e0;
 uniform float steepness_e1;
 uniform float cpu_time;
-uniform sampler2D wave_tex;
 
 // Wave 1
 uniform vec4 wave_1 = vec4(1.0);
@@ -397,4 +397,150 @@ We can make things easier for us by replacing the `wave_data` and `wave_data_dir
 
 ---
 
-# Wave Data and Direction using Texture
+## Wave Data and Direction using Texture
+### Texture Generator Setup
+
+The idea is to have the all the wave information being stored into a single texture. So to do that, let's setup a folder called `gerstner_waves` and a new GDScript class called `gerstner_waves_generator.gd`, which will be a short one:
+
+```gdscript
+@tool
+class_name GersnterWaveGenerator extends Node
+
+@export_tool_button("Generate", "Callable") var generate_action: Callable = _generate_wave_texture
+@export var num_of_waves: int = 30
+@export var filename: String
+  
+func _generate_wave_texture() -> void:
+	var img: Image = Image.create(2, num_of_waves, false, Image.FORMAT_RGBAF)
+	randomize()
+	for i: int in num_of_waves:
+		var data: Color = Color(randf(), randf(), randf(), randf())
+		var direction: Color = Color(randf(), randf(), randf(), 1.0)
+		img.set_pixel(0, i, data)
+		img.set_pixel(1, i, direction)
+
+	img.save_png("res://gerstner_waves/%s.png" % filename)
+	print("Gerstner data texture generated! (res://gerstner_waves/%s.png)" % filename)
+```
+
+What this script does is basically just creating an image file where each row represents the wave. The first column represents the wave data (a variable with type vector 4, if you remember), and the second column represents the wave direction (vector 3). 
+
+Add the script onto the scene and you can see some setup in the inspector window:
+
+![Gerstner waves setup](3-1-gerstner-wave-generator.png)
+
+Determine how many waves you want to have in your shader, and also include the filename (without the extension). When you click generate, a confirmation will be shown in the output console, and the texture will be saved in the `gerstner_waves` folder that we created before.
+
+If you can't see it in the Godot filesystem, you probably need to open the folder using your files explorer first (I'm not sure why, Godot doesn't seem to immediately recognize the file.) You should now see the texture:
+
+![Gerstner waves setup](3-2-gerstner-texture.png)
+
+And we also need to make sure that the texture is not compressed. Double click on the texture, and then head to the import window and make sure that the compress mode is set to be lossless, and then click on re-import:
+
+![Gerstner waves setup](3-3-reimport.png)
+
+Now the texture is ready to be fed into the material, but we need to setup the shader first. So let's do that next!
+
+### Shader Updates
+
+We also need to update the shader file:
+
+```glsl
+shader_type spatial;
+
+...
+
+// We can remove these lines:
+// Wave 1
+// uniform vec4 wave_1 = vec4(1.0);
+// uniform vec3 wave_dir_1 = vec3(0., 1., 0.);
+
+// Wave 2
+// uniform vec4 wave_2 = vec4(1.0);
+// uniform vec3 wave_dir_2 = vec3(0., 1., 0.);
+
+// And replace it with this one:
+uniform sampler2D wave_tex;
+
+...
+
+void vertex() {
+	...
+	
+	// Also replace these two function calls:
+	// spherical_gerstner(
+	//	wave_1, wave_dir_1, position_os_norm,
+	//	sin_part, cos_part, sin_part_normal, cos_part_normal, tangent,
+	//	amplitude_scale, steepness_e0, steepness_e1, frequency_scale, time_scale,
+	//	radius, TIME
+	// );
+	// spherical_gerstner(
+	//	wave_2, wave_dir_2, position_os_norm,
+	//	sin_part, cos_part, sin_part_normal, cos_part_normal, tangent,
+	//	amplitude_scale, steepness_e0, steepness_e1, frequency_scale, time_scale,
+	//	radius, TIME
+	// );
+	
+	// With this one instead:
+	int wave_data_amount = textureSize(wave_tex, 0).y;
+	for (int i = 0; i < wave_data_amount; i++) {
+		vec4 data = texelFetch(wave_tex, ivec2(0, i), 0);
+		vec3 dir = texelFetch(wave_tex, ivec2(1, i), 0).rgb;
+		spherical_gerstner(
+			data, dir, position_os_norm,
+			sin_part, cos_part, sin_part_normal, cos_part_normal, tangent,
+			amplitude_scale, steepness_e0, steepness_e1, frequency_scale, time_scale,
+			radius, TIME
+		);
+	}
+
+	...
+}
+```
+
+In the new vertex function, we loop through every row of the texture, fetching the first `y` index (first column) to get the wave data, and also fetching the second `y` index (second column) to get the wave direction. Once we fetched them, we feed it into the `spherical_gerstner` function again.
+
+Now we're ready to feed the texture into the material. You just need to drag and drop the texture into the `wave_tex` slot in the material:
+
+![Gerstner waves setup](3-4-inserting-texture.png)
+
+And now you should be able to see the end result!
+
+{{< video src="result-2" >}}
+
+## Uh... My Ocean is White?
+
+Yeah I know, I know, we haven't touched the fragment shader yet! I don't want to cover the fragment shader that much right now because it's not that important for now (*honest reason*: I haven't figured out how the UV would work) but basically I just replaced the `ALBEDO` variable with a uniform value:
+
+```glsl
+shader_type spatial;
+
+...
+
+group_uniforms VisualSettings;
+uniform vec4 main_color : source_color;
+
+...
+
+void vertex() {
+	...
+}
+
+void fragment() {
+	ALBEDO = main_color.rgb;
+}
+```
+
+Now you can change the `main_color` value and your plane will no longer be white colored anymore!
+
+## Yay! Conclusion! What's Next?
+
+Cool! Now we have a plane that is simulating the ocean waves using the Gerstner waves formula, that is wrapping around a sphere and is distortion-free.
+
+There are lots of things that still needs to be done, including utilizing the basis to rotate the plane and adjusting the y_offset value, syncing with the game objects, and also properly coloring the ocean plane, when that becomes important (*read*: when I solve UV calculation.) But they will come in due time!
+
+For now, enjoy the wiggly plane! Hope it's been useful!
+
+[^1]: Catlike Coding: Waves. (https://catlikecoding.com/unity/tutorials/flow/waves/)
+[^2]: Florian Michelic and Michael Kenzel. Real-Time Rendering of Procuderally Generated Planets. TU Graz, 2018. (https://cescg.org/cescg_submission/real-time-rendering-of-procedurally-generated-planets/)
+[^3]: kulesz. Planetary Water. (https://github.com/kulesz/PlanetaryWater/)

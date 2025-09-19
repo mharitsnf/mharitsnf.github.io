@@ -9,11 +9,9 @@ toc = true
 
 ## What is This?
 
-I spent a few days trying to figure out how to properly simulate ocean waves for spherical levels in video games. I managed to do it for flat surfaces thanks to <cite>Catlike Coding's awesome walkthrough of the Gerstner Wave [^1]</cite>, but trying to project a flat plane onto a sphere and making the waves work like before is a different problem, one that I could not solve on my own.
+I will talk a bit about how I implemented Gerstner waves ocean simulation for planets / spherical surfaces as described by Florian Michelic and Michael Kenzel's paper <cite>Real-Time Rendering of Procedurally Generated Planets [^2]</cite> in Godot Engine 4. I also used kulesz's implementation of the method as a reference, which can be found in their repository, <cite>PlanetaryWater [^3]</cite>, and is targeted for Unity.
 
-So I thought there has to be someone smarter than me who had solved this issue before, knowing that we've had games that features planets with oceans, right? (Looking at you, Giant's Deep in Outer Wilds.) And well, I stumbled upon a paper called <cite>_Real-Time Rendering of Procedurally Generated Planets_ [^2]</cite>, written by Florian Michelic and Michael Kenzel which explains how to deal with this exact problem! Usually I'd steer clear from scientific papers because they can be rather difficult to comprehend, but honestly it's hard to do that when you're working on computer graphics stuff. So, driven by my curiosity, I managed to implement their method in my game engine of choice, namely Godot Engine 4, and actually had a pretty good time reading the paper as I think it was really well written! I also received great help from <cite>kulesz's PlanetaryWater repository [^3]</cite>, which is also an implementation of the method, but in Unity.
-
-I'm quite satisfied with the result (you can see in the video below); the method they came up with produces waves that are distortion-free, meaning it will look good regardless of where you are, whether you're looking from a certain point on the planet or from the space, and it works wonders with large amount of waves (more detailed) or small amount of waves (more simple, which is what I'm after.)
+I'm quite satisfied with the result and I think this works best for stylized games (you can see in the video below). The method they came up with produces waves that are distortion-free, meaning it will look good regardless of where you are, whether you're looking from a certain point on the planet or from the space, and it works wonders with large amount of waves (more detailed) or small amount of waves (more simple.)
 {{< video src="overview" >}}
 I used 20 waves in the video, in which you can play around with the plane size and the radius. You can also tweak the amplitude, frequency, and time scale of the waves. It is also possible to change the orientation of the plane using the basis uniform.
 
@@ -24,8 +22,6 @@ The repository of this project can be found [here](https://github.com/mharitsnf/
 ## Setting Up the Scene
 Let's get started! As I mentioned, I'm using Godot Engine 4, but you should be able to replicate this in any other engine. At the end of this article, you'll have a spherical gerstner wave implementation in the vertex shader.
 
-Note that I'm not doing the frament shader for now mainly because I'm lazy, and also I haven't got a good art direction for my ocean. I'll come back to that in a future article.
-
 Firstly, let's create a `MeshInstance3D` node that would be our main visual, which will hold our shader material as well. We want a PlaneMesh for the mesh, and set the size to 2 on both the width and height. This way we can ensure that the bottom left corner of the plane will fall on the coordinates (-1, -1), while the top right corner of the plane will fall on the coordinate (1, 1). This is necessary for the grid projection calculation that we will be doing in the next section.
 
 ![Test](initial-plane.png)
@@ -35,6 +31,23 @@ We also want to set the subdivide width and depth to a number we like. I'm setti
 Now, let's create a spatial shader file (I call mine `ocean.shader`), and save it somewhere in the project (I put mine in the root of the project). After that, let's also create a material based on that shader called `m_ocean.tres`, and then assign it to the plane:
 
 ![Test](material-setup.png)
+
+## Fragment Shader
+
+Before we continue, let's setup the simplest fragment shader possible, so that we can set the color of the plane:
+
+```glsl
+shader_type spatial;
+
+group_uniforms VisualSettings;
+uniform vec4 main_color : source_color;
+
+void fragment() {
+	ALBEDO = main_color.rgb;
+}
+```
+
+I think the fragment shader deserves its own post, so I will talk a bit more about that in that post. For now, let's just be able to change our plane's color by setting the `source_color`'s value to a nice color.
 
 ---
 
@@ -48,11 +61,15 @@ shader_type spatial;
 uniform float y_offset = 100.;
 uniform float radius = 1000.;
 
+...
+
 void vertex() {
     vec3 init_vertex = VERTEX;
     init_vertex.y = y_offset;
     VERTEX = normalize(init_vertex) * radius;
 }
+
+...
 ```
 
 This is how it looks like with `y_offset` equals to `1.5` and `radius` equals to `100.0`:
@@ -148,7 +165,7 @@ void spherical_gerstner(
 	inout float sin_part_normal, inout vec3 cos_part_normal, inout vec3 tangent,
 	float amp_scale, float s_e0, float s_e1, float freq_scale, float t, float r, float time
 ) {
-
+	// Left empty for now
 }
 ```
 
@@ -224,7 +241,7 @@ void vertex() {
 We are now calling the `spherical_gerstner` function but apparently it won't do a thing since we haven't implemented the calculation just yet. So let's get back to it:
 
 ```glsl
-// I'm skipping the parameters because it's too long, but don't omit those
+// I'm skipping the parameters because it's too long, but don't omit them
 void spherical_gerstner(...) {
 	vec3 wave_dir_norm = normalize(wave_dir);
 
@@ -318,6 +335,10 @@ uniform vec3 wave_dir_1 = vec3(0., 1., 0.);
 uniform vec4 wave_2 = vec4(1.0);
 uniform vec3 wave_dir_2 = vec3(0., 1., 0.);
 
+// Color settings
+group_uniforms VisualSettings;
+uniform vec4 main_color : source_color;
+
 void spherical_gerstner(
 	vec4 wave_data, vec3 wave_dir, vec3 pos_os_norm,
 	inout float sin_part, inout vec3 cos_part,
@@ -390,6 +411,10 @@ void vertex() {
 
 	VERTEX = wave_pos;
 	NORMAL = wave_normal;
+}
+
+void fragment() {
+	ALBEDO = main_color.rgb;
 }
 ```
 
@@ -507,37 +532,11 @@ Now we're ready to feed the texture into the material. You just need to drag and
 And now you should be able to see the end result!
 
 {{< video src="result-2" >}}
-
-## Uh... My Ocean is White?
-
-Yeah I know, I know, we haven't touched the fragment shader yet! I don't want to cover the fragment shader that much right now because it's not that important for now (*honest reason*: I haven't figured out how the UV would work) but basically I just replaced the `ALBEDO` variable with a uniform value:
-
-```glsl
-shader_type spatial;
-
-...
-
-group_uniforms VisualSettings;
-uniform vec4 main_color : source_color;
-
-...
-
-void vertex() {
-	...
-}
-
-void fragment() {
-	ALBEDO = main_color.rgb;
-}
-```
-
-Now you can change the `main_color` value and your plane will no longer be white colored anymore!
-
-## Yay! Conclusion! What's Next?
+## Conclusion! What's Next?
 
 Cool! Now we have a plane that is simulating the ocean waves using the Gerstner waves formula, that is wrapping around a sphere and is distortion-free.
 
-There are lots of things that still needs to be done, including utilizing the basis to rotate the plane and adjusting the y_offset value, syncing with the game objects, and also properly coloring the ocean plane, when that becomes important (*read*: when I solve UV calculation.) But they will come in due time!
+There are lots of things that still needs to be done, including utilizing the basis to rotate the plane and adjusting the y_offset value, syncing with the game objects, and also properly coloring the ocean plane. But they will come in due time!
 
 For now, enjoy the wiggly plane! Hope it's been useful!
 

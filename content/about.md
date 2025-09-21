@@ -12,3 +12,4 @@ Here's how to reach me:
 - [LinkedIn](https://www.linkedin.com/in/mharitsnf/)
 - [Github](https://github.com/mharitsnf)
 - [Bluesky](https://bsky.app/profile/mharitsnf.itch.io)
+- [Itch.io](https://mharitsnf.itch.io/)

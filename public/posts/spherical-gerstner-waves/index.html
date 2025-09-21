@@ -159,7 +159,7 @@
   <h1 class="post-title">
     <a href="//localhost:1313/posts/spherical-gerstner-waves/">Spherical Gerstner Wave: Vertex Shader</a>
   </h1>
-  <div class="post-meta"><time class="post-date">2025-09-03</time><span class="post-reading-time">16 min read (3330 words)</span></div>
+  <div class="post-meta"><time class="post-date">2025-09-03</time><span class="post-reading-time">16 min read (3328 words)</span></div>
 
   
     <span class="post-tags">
@@ -203,7 +203,7 @@
 
   <div class="post-content"><div>
         <h2 id="what-is-this">What is This?<a href="#what-is-this" class="hanchor" ariaLabel="Anchor">#</a> </h2>
-<p>I will talk a bit about how I implemented Gerstner waves ocean simulation for planets / spherical surfaces as described by Florian Michelic and Michael Kenzel&rsquo;s paper <!-- raw HTML omitted -->Real-Time Rendering of Procedurally Generated Planets <sup id="fnref:1"><a href="#fn:1" class="footnote-ref" role="doc-noteref">1</a></sup><!-- raw HTML omitted --> in Godot Engine 4. I also used kulesz&rsquo;s implementation of the method as a reference, which can be found in their repository, <!-- raw HTML omitted -->PlanetaryWater <sup id="fnref:2"><a href="#fn:2" class="footnote-ref" role="doc-noteref">2</a></sup><!-- raw HTML omitted -->, and is targeted for Unity.</p>
+<p>I will talk a bit about how I implemented Gerstner waves ocean simulation in Godot Engine 4 for planets / spherical surfaces as described by Florian Michelic and Michael Kenzel in their paper, <!-- raw HTML omitted -->Real-Time Rendering of Procedurally Generated Planets <sup id="fnref:1"><a href="#fn:1" class="footnote-ref" role="doc-noteref">1</a></sup><!-- raw HTML omitted -->. I also used kulesz&rsquo;s Unity implementation of the method as a reference, which can be found in their repository, <!-- raw HTML omitted -->PlanetaryWater <sup id="fnref:2"><a href="#fn:2" class="footnote-ref" role="doc-noteref">2</a></sup><!-- raw HTML omitted -->.</p>
 <p>I&rsquo;m quite satisfied with the result and I think this works best for stylized games (you can see in the video below). The method they came up with produces waves that are distortion-free, meaning it will look good regardless of where you are, whether you&rsquo;re looking from a certain point on the planet or from the space, and it works wonders with large amount of waves (more detailed) or small amount of waves (more simple.)
 <video controls preload="auto" width="100%"  playsinline class="html-video">
     <source src="/posts/spherical-gerstner-waves/overview.mp4" type="video/mp4">

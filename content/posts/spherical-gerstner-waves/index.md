@@ -9,7 +9,7 @@ toc = true
 
 ## What is This?
 
-I will talk a bit about how I implemented Gerstner waves ocean simulation for planets / spherical surfaces as described by Florian Michelic and Michael Kenzel's paper <cite>Real-Time Rendering of Procedurally Generated Planets [^2]</cite> in Godot Engine 4. I also used kulesz's implementation of the method as a reference, which can be found in their repository, <cite>PlanetaryWater [^3]</cite>, and is targeted for Unity.
+I will talk a bit about how I implemented Gerstner waves ocean simulation in Godot Engine 4 for planets / spherical surfaces as described by Florian Michelic and Michael Kenzel in their paper, <cite>Real-Time Rendering of Procedurally Generated Planets [^2]</cite>. I also used kulesz's Unity implementation of the method as a reference, which can be found in their repository, <cite>PlanetaryWater [^3]</cite>.
 
 I'm quite satisfied with the result and I think this works best for stylized games (you can see in the video below). The method they came up with produces waves that are distortion-free, meaning it will look good regardless of where you are, whether you're looking from a certain point on the planet or from the space, and it works wonders with large amount of waves (more detailed) or small amount of waves (more simple.)
 {{< video src="overview" >}}
